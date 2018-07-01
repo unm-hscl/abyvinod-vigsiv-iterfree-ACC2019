@@ -90,14 +90,29 @@ clear, clc, close all
     end
     
     % Sanity check done to determine if d vector is generated properly:
-    % NOTE: Please comment out if you don't need to check
+    % NOTE: Please comment out if you don't need to check. 
     
         P1 = Polyhedron('V', [50, 50; 50, 100; 100, 100; 100, 50;]);
         P1.plot()
         hold on
-        plot(Xp(1:4:T*4,:,9),Xp(3:4:T*4,:,9),'y+');
-        
-        
+        plot(Xp(1:4:T*4,:,2),Xp(3:4:T*4,:,2),'-k+');
+        axis([-100 250 -100 250])
+    
+    % Evaluate binary variable e which indicates if an obstacle has been
+    % avoided at time t.
+     for i = 1:N
+        for j = 1:T
+            
+            if sum(d(j,:,i)) == size(ob1_a,1)
+                e(j,i) = 1; 
+            else
+                e(j,i) = 0;
+            end
+            
+        end
+     end
+    
+     % Evaluate binary variable g which indicates
 
 %% Run optimization problem for an optimal control policy
 % We run an optimization problem to determine the control policy over the
