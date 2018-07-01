@@ -40,7 +40,7 @@ clear, clc, close all
 %     plot(W(:),'+')
 
 % Consider the initial state is known:
-    x0 = [1,0,2,0]';
+    x0 = [0,0,25,0]';
 
 % Generate future state trajectories now we have sampled the disturbance.
     
@@ -54,12 +54,43 @@ clear, clc, close all
                 if j == 1
                     Xp((4*(j)+1):4*(j+1),:,i) = A*Xp(1:4,:,i)+G*W(1:4,:,i);
                 elseif j == T
-                    break
+                    break;
                 else
                     Xp((4*(j)+1):4*(j+1),:,i) = A*Xp(4*(j-1):4*j-1,:,i)+G*W(4*(j-1):4*j-1,:,i);
                 end
             end
         end
+        
+% Approximate the chance constraints in terms of generated particles. 
+    
+    % Define the obstacle(s) for which we will evalutate the binary function
+    % d:
+    ob1_a = [ 1 0  0 0;
+              0 0  1 0;
+             -1 0  0 0;
+              0 0 -1 0;]; 
+    ob1_b =  [50;50;-100;-100];
+    
+    % Evaluate binary variable d which represents, given an object O1,
+    % it indicates whether the linear constraints that represent the object
+    % have been crossed by the particles. 
+    
+    d = zeros(T,size(ob1_a,1),N);
+    
+    for i = 1:N
+        for j = 1:T
+            for k = 1:size(ob1_a,1)
+                if j == 1
+                        d(1,k,i) = ob1_a(k,:)*Xp(1:4,:,i)>=ob1_b(k);
+                    else
+                        d(j,k,i) = ob1_a(k,:)*Xp((4*(j-1))+1:4*j,:,i)>=ob1_b(k);
+                end
+            end
+        end
+    end
+    
+    % 
+        
         
 
 %% Run optimization problem for an optimal control policy
