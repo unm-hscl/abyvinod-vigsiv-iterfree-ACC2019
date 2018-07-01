@@ -89,7 +89,14 @@ clear, clc, close all
         end
     end
     
-    % 
+    % Sanity check done to determine if d vector is generated properly:
+    % NOTE: Please comment out if you don't need to check. 
+    
+        P1 = Polyhedron('V', [50, 50; 50, 100; 100, 100; 100, 50;]);
+        P1.plot()
+        hold on
+        plot(Xp(1:4:T*4,:,9),Xp(3:4:T*4,:,9),'k+');
+        axis([-100 250 -100 250])
         
         
 

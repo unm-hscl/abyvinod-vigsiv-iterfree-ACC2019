@@ -65,11 +65,11 @@ clear, clc, close all
     
     % Define the obstacle(s) for which we will evalutate the binary function
     % d:
-    ob1_a = [  0 0 1 0;
-              1 0 0 0;
-               0 0 1 0
-              1 0 0 0]; 
-    ob1_b =  [50;50;100;60];
+    ob1_a = [ 1 0  0 0;
+              0 0  1 0;
+             -1 0  0 0;
+              0 0 -1 0;]; 
+    ob1_b =  [50;50;-100;-100];
     
     % Evaluate binary variable d which represents, given an object O1,
     % it indicates whether the linear constraints that represent the object
@@ -81,19 +81,21 @@ clear, clc, close all
         for j = 1:T
             for k = 1:size(ob1_a,1)
                 if j == 1
-                    if ob1_a(k,:)*Xp(1:4,:,i)>=ob1_b(k)
                         d(1,k,i) = ob1_a(k,:)*Xp(1:4,:,i)>=ob1_b(k);
                     else
-                        
-                    end
-                    else
-                        d(4*(j-1)+1:4*j,k,i) = ob1_a(k,:)*Xp(4*(j-1):4*j-1,:,i)>=ob1_b(k);
+                        d(j,k,i) = ob1_a(k,:)*Xp((4*(j-1))+1:4*j,:,i)>=ob1_b(k);
                 end
             end
         end
     end
     
-    % 
+    % Sanity check done to determine if d vector is generated properly:
+    % NOTE: Please comment out if you don't need to check
+    
+        P1 = Polyhedron('V', [50, 50; 50, 100; 100, 100; 100, 50;]);
+        P1.plot()
+        hold on
+        plot(Xp(1:4:T*4,:,9),Xp(3:4:T*4,:,9),'y+');
         
         
 
