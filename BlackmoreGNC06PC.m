@@ -95,10 +95,31 @@ clear, clc, close all
         P1 = Polyhedron('V', [50, 50; 50, 100; 100, 100; 100, 50;]);
         P1.plot()
         hold on
-        plot(Xp(1:4:T*4,:,9),Xp(3:4:T*4,:,9),'k+');
+        plot(Xp(1:4:T*4,:,2),Xp(3:4:T*4,:,2),'-k+');
         axis([-100 250 -100 250])
-        
-        
+    
+    % Evaluate binary variable e which indicates if an obstacle has been
+    % avoided at time t.
+     for i = 1:N
+        for j = 1:T
+            if sum(d(j,:,i)) == size(ob1_a,1)
+                e(j,i) = 1; 
+            else
+                e(j,i) = 0;
+            end
+            
+        end
+     end
+    
+     % Evaluate binary variable g which indicates an obstacle is avoided
+     % for all time: 
+     for i = 1:N
+        if sum(e(:,i)) > 0
+            g(i) = 1; 
+        else
+            g(i) = 0;
+        end
+     end     
 
 %% Run optimization problem for an optimal control policy
 % We run an optimization problem to determine the control policy over the
