@@ -28,10 +28,13 @@ clear, clc, close all
         G = [1 1 1 1];
 
 % Number of particles to generate. 
-    N = 100; 
+    N = 50; 
     
 % Time Horizon.
-    T = 30;
+    T = 10;
+    
+% Desired target trajectory. 
+    xref = [200 0 200 0]';
     
 % Randomly generate the disturbance vector from the standard normal.
     for l = 1:N
@@ -45,7 +48,7 @@ clear, clc, close all
 % Generate future state trajectories now we have sampled the disturbance.
     
     % Preallocate concatnated xP vector (pre-input applied): 
-        Xp = zeros(length(W),1,N);
+        Xp = zeros(length(A)*T,1,N);
         Xp(1:4,:,:) = repmat(x0,1,1,N);
     
     % Generate state tracjectories: 
@@ -104,7 +107,9 @@ clear, clc, close all
         P1.plot()
         hold on
         P2.plot()
-        plot(Xp(1:4:T*4,:,2),Xp(3:4:T*4,:,2),'-k+');
+        for i=1:N/16
+            plot(Xp(1:4:T*4,:,i),Xp(3:4:T*4,:,i),'-+');
+        end
         axis([-100 250 -100 250])
     
     % Evaluate binary variable e which indicates if an obstacle has been
@@ -124,6 +129,9 @@ clear, clc, close all
     
      % Evaluate binary variable g which indicates an obstacle is avoided
      % for all time: 
+     
+     g = zeros(N,size(ob_a,3));
+     
      for i = 1:N
          for k = 1:1:size(ob_a,3)
             if sum(e(:,i,k)) > 0
@@ -136,18 +144,121 @@ clear, clc, close all
      
      % Evaluate binary variable z which indicates all obstacles are avoided
      % for all time steps by particle i: 
-          for i = 1:N
-         for k = 1:1:size(ob_a,3)
-            if sum(e(:,i,k)) > 0
-                g(i,k) = 1; 
+     
+     z = zeros(N,1);
+     
+     for i = 1:N
+            if sum(g(i,:)) > 0
+                z(i) = 1; 
             else
-                g(i,k) = 0;
+                z(i) = 0;
             end
-         end
-     end  
+     end
+     
+     % Generate the chance constraint to be used in the optimization
+     % problem: 
+     
+     nu = 1/N*sum(z);
+     
+% Approximate the expected cost function in terms of particles.
+
+    % Generate desired trajectory for the entire time horizon: 
+        xref = repmat(xref,T,1);
+        Q = 50*eye(length(A));
+        R = 0.001*eye(2*T);
+        h = zeros(T,1);
+
+    % The expected cost is modified from Vitus et al. (2012): 
+        for i = 1:N
+            for j = 1:T
+                if j == 1
+                   h(j,i) = (Xp(1:4,:,i)-xref(1:4))'*Q*(Xp(1:4,:,i)-xref(1:4));
+                else
+                   h(j,i) = (Xp((4*(j-1))+1:4*j,:,i)-xref((4*(j-1))+1:4*j))'*Q*(Xp((4*(j-1))+1:4*j,:,i)-xref((4*(j-1))+1:4*j));
+                end
+                Eh(j,1) = 1/N*sum(h(:,i));
+            end
+            
+        end
+        
+        
+        
+ 
+    
 
 %% Run optimization problem for an optimal control policy
 % We run an optimization problem to determine the control policy over the
-% time horizon T. 
+% time horizon T.
+
+cvx_begin
+    variable U(size(B,2)*T)
+    variable Xr(size(A,2)*T,1,N)
+    variable d(T,size(ob_a,1),N,size(ob_a,1)) binary
+    variable e(T,N,size(ob_a,3)) binary
+    variable g(N,size(ob_a,3)) binary
+    variable z(N) binary
+    variable Eh(T,1)
     
+    
+    minimize( sum( + N*quad_form(U,R)))
+    subject to
+    
+        % Generate state tracjectories: 
+        for i = 1:N
+            for j = 1:T
+                if j == 1
+                    Xr((4*(j)+1):4*(j+1),:,i) == A*Xp(1:4,:,i)+G*W(1:4,:,i);
+                elseif j == T
+                    break;
+                else
+                    Xr((4*(j)+1):4*(j+1),:,i) == A*Xr(4*(j-1):4*j-1,:,i)+G*W(4*(j-1):4*j-1,:,i)+B*U(2*(j-1):2*j-1,:);
+                end
+            end
+        end
+    
+    for i = 1:N
+        for j = 1:T
+            for k = 1:size(ob_a,3)
+                for l = 1:size(ob_a,1)
+                    if j == 1
+                            2000*d(1,l,i,k) + ob_a(l,:,k)*Xr(1:4,:,i)-ob_b(l,k)>=0;
+                        else
+                            2000*d(j,l,i,k) + ob_a(l,:,k)*Xr((4*(j-1))+1:4*j,:,i)-ob_b(l,k)>=0;
+                    end
+                end
+            end
+        end
+    end
+    
+    
+    % Evaluate binary variable e which indicates if an obstacle has been
+    % avoided at time t.
+     for i = 1:N
+        for j = 1:T
+            for k = 1:size(ob_a,3)
+                sum(d(j,:,i,k)) - (size(ob_a,3)-1)<=2000*e(j,i,k);
+            end
+            
+        end
+     end
+    
+     % Evaluate binary variable g which indicates an obstacle is avoided
+     % for all time: 
+     
+     
+     for i = 1:N
+         for k = 1:1:size(ob_a,3)
+            sum(e(:,i,k)) <= 2000*g(i,k);
+         end
+     end 
+     
+     % Evaluate binary variable z which indicates all obstacles are avoided
+     % for all time steps by particle i: 
+     
+     for i = 1:N
+        sum(g(i,:)) <= 2000*z(i);
+     end
+         
+
+cvx_end
 
