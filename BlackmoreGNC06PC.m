@@ -124,6 +124,9 @@ clear, clc, close all
     
      % Evaluate binary variable g which indicates an obstacle is avoided
      % for all time: 
+     
+     g = zeros(N,size(ob_a,3));
+     
      for i = 1:N
          for k = 1:1:size(ob_a,3)
             if sum(e(:,i,k)) > 0
@@ -136,14 +139,20 @@ clear, clc, close all
      
      % Evaluate binary variable z which indicates all obstacles are avoided
      % for all time steps by particle i: 
+     
+     z = zeros(N,1);
+     
      for i = 1:N
-         for k = 1:1:size(ob_a,3)
-            
-         end
+            if sum(g(i,:)) > 0
+                z(i) = 1; 
+            else
+                z(i) = 0;
+            end
      end  
 
 %% Run optimization problem for an optimal control policy
 % We run an optimization problem to determine the control policy over the
-% time horizon T. 
-    
+% time horizon T.
+
+
 
