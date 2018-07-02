@@ -136,9 +136,13 @@ clear, clc, close all
      
      % Evaluate binary variable z which indicates all obstacles are avoided
      % for all time steps by particle i: 
-     for i = 1:N
+          for i = 1:N
          for k = 1:1:size(ob_a,3)
-            
+            if sum(e(:,i,k)) > 0
+                g(i,k) = 1; 
+            else
+                g(i,k) = 0;
+            end
          end
      end  
 
