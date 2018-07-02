@@ -34,8 +34,8 @@ clear, clc, close all
     T = 30;
     
 % Randomly generate the disturbance vector from the standard normal.
-    for k = 1:N
-        W(:,:,k) = mvnrnd(zeros(1,length(A)*T),eye(length(A)*T))';
+    for l = 1:N
+        W(:,:,l) = mvnrnd(zeros(1,length(A)*T),eye(length(A)*T))';
     end
 %     plot(W(:),'+')
 
@@ -65,25 +65,27 @@ clear, clc, close all
     
     % Define the obstacle(s) for which we will evalutate the binary function
     % d:
-    ob1_a = [ 1 0  0 0;
+    ob_a(:,:,1) = [ 1 0  0 0;
               0 0  1 0;
              -1 0  0 0;
               0 0 -1 0;]; 
-    ob1_b =  [50;50;-100;-100];
+    ob_b(:,1) =  [50;50;-100;-100];
     
     % Evaluate binary variable d which represents, given an object O1,
     % it indicates whether the linear constraints that represent the object
     % have been crossed by the particles. 
     
-    d = zeros(T,size(ob1_a,1),N);
+    d = zeros(T,size(ob_a,1),N);
     
     for i = 1:N
         for j = 1:T
-            for k = 1:size(ob1_a,1)
-                if j == 1
-                        d(1,k,i) = ob1_a(k,:)*Xp(1:4,:,i)>=ob1_b(k);
-                    else
-                        d(j,k,i) = ob1_a(k,:)*Xp((4*(j-1))+1:4*j,:,i)>=ob1_b(k);
+            for k = 1:size(ob_a,3)
+                for l = 1:size(ob_a,1)
+                    if j == 1
+                            d(1,l,i,k) = ob_a(l,:,k)*Xp(1:4,:,i)>=ob_b(l,k);
+                        else
+                            d(j,l,i,k) = ob_a(l,:,k)*Xp((4*(j-1))+1:4*j,:,i)>=ob_b(l,k);
+                    end
                 end
             end
         end
@@ -102,10 +104,12 @@ clear, clc, close all
     % avoided at time t.
      for i = 1:N
         for j = 1:T
-            if sum(d(j,:,i)) == size(ob1_a,1)
-                e(j,i) = 1; 
-            else
-                e(j,i) = 0;
+            for k = 1:size(ob_a,3)
+                if sum(d(j,:,i,k)) == size(ob_a,3)
+                    e(j,i,k) = 1; 
+                else
+                    e(j,i,k) = 0;
+                end
             end
             
         end
@@ -114,7 +118,7 @@ clear, clc, close all
      % Evaluate binary variable g which indicates an obstacle is avoided
      % for all time: 
      for i = 1:N
-        if sum(e(:,i)) > 0
+        if sum(e(:,i,:)) > 0
             g(i) = 1; 
         else
             g(i) = 0;
