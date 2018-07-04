@@ -187,7 +187,7 @@ cvx_begin
     variable U(size(B,2)*T)
     variable Xr(size(A,2)*T,N)
     
-    minimize( trace((sum(Xr-xrefh,2)/N)'*Qhugep*sum((Xr-xrefh),2)/N))
+    minimize( trace((sum(Xr-xrefh,2)/N)'*Qhugep/N*sum((Xr-xrefh),2)/N))
 %     minimize( sum(z) + 1/N*sum(sum(h)))
     subject to
     
