@@ -183,6 +183,7 @@ clear, clc, close all
 Qhugep=kron(eye(T),Q);
 
 cvx_clear
+cvx_precision best
 cvx_begin
     variable U(size(B,2)*T)
     variable Xr(size(A,2)*T,N)
