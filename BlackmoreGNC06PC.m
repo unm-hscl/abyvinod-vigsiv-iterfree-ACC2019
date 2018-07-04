@@ -31,11 +31,11 @@ clear, clc, close all
     N = 50; 
     
 % Time Horizon.
-    T = 10;
+    T = 20;
     
 % Desired target trajectory. 
     xref = [200 0 200 0]';
-    xrefh = repmat(xref,T,1);
+    xrefh = repmat(xref,T,N);
     
 % Randomly generate the disturbance vector from the standard normal.
     for i = 1:N
@@ -180,18 +180,18 @@ clear, clc, close all
 %% Run optimization problem for an optimal control policy
 % We run an optimization problem to determine the control policy over the
 % time horizon T.
-Qhugep=kron(eye(T*N),Q);
+Qhugep=kron(eye(T),Q);
 
 cvx_clear
 cvx_begin
     variable U(size(B,2)*T)
     variable Xr(size(A,2)*T,N)
     
-    minimize( trace((Xr-xrefh)'*Qhugep*(Xr-xrefh)))
+    minimize( trace((sum(Xr-xrefh,2)/N)'*Qhugep*sum((Xr-xrefh),2)/N))
 %     minimize( sum(z) + 1/N*sum(sum(h)))
     subject to
     
-        Xr(1:4) == Xp(1:4,1);
+        Xr(1:4,:) == Xp(1:4,:);
         % Generate state tracjectories: =
         for i = 1:N
             for j = 1:T-1
@@ -199,7 +199,7 @@ cvx_begin
                     Xr((4*j+1):4*(j+1),i) == B*U(2*(j-1)+1:2*j) + A*Xr(4*(j-1)+1:4*(j),i)+G*W(4*(j-1)+1:4*j,i);
             end
         end
-            abs(U) <= 200;
+          abs(U) <= 100;
             
             
 cvx_end
@@ -211,33 +211,33 @@ cvx_end
     P1.plot()
     hold on
     P2.plot()
-%     for i=1:N
-        plot(Xr(1:4:T*4),Xr(3:4:T*4),'-+');
-%     end
+    for i=1:N
+        plot(Xr(1:4:T*4,i),Xr(3:4:T*4,i),'-+');
+   end
     axis([-100 250 -100 250])
     
     
-cvx_clear
-cvx_begin
-    variable U(size(B,2)*T)
-    variable Xr(size(A,2)*T,1)
-    
-    minimize( trace((Xr-xrefh)'*Qhuge*(Xr-xrefh)))
-%     minimize( sum(z) + 1/N*sum(sum(h)))
-    subject to
-    
-        Xr(1:4) == Xp(1:4,1);
-        % Generate state tracjectories: =
-            for j = 1:T-1 
-                    Xr((4*j+1):4*(j+1)) == B*U(2*(j-1)+1:2*j) + A*Xr(4*(j-1)+1:4*(j));
-            end
-            abs(U) <= 200;
-            
-            
-cvx_end
-    
-    Xr = full(Xr);
-%     for i=1:N
-        plot(Xr(1:4:T*4),Xr(3:4:T*4),'-+');
-%     end
-    axis([-100 250 -100 250])
+% cvx_clear
+% cvx_begin
+%     variable U(size(B,2)*T)
+%     variable Xr(size(A,2)*T,1)
+%     
+%     minimize( trace((Xr-xrefh)'*Qhuge*(Xr-xrefh)))
+% %     minimize( sum(z) + 1/N*sum(sum(h)))
+%     subject to
+%     
+%         Xr(1:4) == Xp(1:4,1);
+%         % Generate state tracjectories: =
+%             for j = 1:T-1 
+%                     Xr((4*j+1):4*(j+1)) == B*U(2*(j-1)+1:2*j) + A*Xr(4*(j-1)+1:4*(j));
+%             end
+%             abs(U) <= 200;
+%             
+%             
+% cvx_end
+%     
+%     Xr = full(Xr);
+% %     for i=1:N
+%         plot(Xr(1:4:T*4),Xr(3:4:T*4),'-+');
+% %     end
+%     axis([-100 250 -100 250])
