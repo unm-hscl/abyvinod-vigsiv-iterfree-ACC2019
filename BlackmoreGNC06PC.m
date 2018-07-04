@@ -36,7 +36,6 @@ clear, clc, close all
 % Desired target trajectory. 
     xref = [200 0 200 0]';
     xrefh = repmat(xref,T,1);
-    xrefhh = repmat(xref,T*N,1);
     
 % Randomly generate the disturbance vector from the standard normal.
     for i = 1:N
@@ -59,14 +58,6 @@ clear, clc, close all
                 
                 Xp((4*(j)+1):4*(j+1),i) = A*Xp(4*(j-1)+1:4*j,i)+ G*W(4*(j-1)+1:4*j,i);
 
-            end
-        end
-        Xt(:,1) = Xp(:); 
-        Wt(:,1) = W(:); 
-        for i = 1:N
-            for j = (T*(i-1)+1):T+(T*(i-1))-1
-%                     abs(U(2*(j-1)+1:2*j))<=[0.5;0.5];
-                    Xt((4*j+1):4*(j+1)) == A*Xt(4*(j-1)+1:4*(j))+G*Wt(4*(j-1)+1:4*j);
             end
         end
         
@@ -190,26 +181,22 @@ clear, clc, close all
 % We run an optimization problem to determine the control policy over the
 % time horizon T.
 Qhugep=kron(eye(T*N),Q);
-Qhuge=kron(eye(T),Q);
-W = W(:);
 
 cvx_clear
 cvx_begin
     variable U(size(B,2)*T)
-    variable Xr(size(A,2)*T*N)
+    variable Xr(size(A,2)*T,N)
     
-    minimize( trace((Xr-xrefhh)'*Qhugep*(Xr-xrefhh)))
+    minimize( trace((Xr-xrefh)'*Qhugep*(Xr-xrefh)))
 %     minimize( sum(z) + 1/N*sum(sum(h)))
     subject to
     
-        Xr(:) == Xp(:);
+        Xr(1:4) == Xp(1:4,1);
         % Generate state tracjectories: =
         for i = 1:N
-            for j = (T*(i-1)+1):T+(T*(i-1))-1
-%                     abs(U(2*(j-1)+1:2*j))<=[0.5;0.5];
-                for k = 1:T-1
-                    Xr((4*j+1):4*(j+1)) == B*U(2*(k-1)+1:2*k) + A*Xr(4*(j-1)+1:4*(j))+G*W(4*(j-1)+1:4*j);
-                end
+            for j = 1:T-1
+%                     abs(U(2*(j-1)+1:2*j))<=[0.5;0.5]; 
+                    Xr((4*j+1):4*(j+1),i) == B*U(2*(j-1)+1:2*j) + A*Xr(4*(j-1)+1:4*(j),i)+G*W(4*(j-1)+1:4*j,i);
             end
         end
             abs(U) <= 200;
