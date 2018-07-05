@@ -28,7 +28,7 @@ clear, clc, close all
         G = eye(4);
 
 % Number of particles to generate. 
-    N = 50; 
+    N = 1; 
     
 % Time Horizon.
     T = 20;
@@ -158,8 +158,8 @@ clear, clc, close all
 % Approximate the expected cost function in terms of particles.
 
     % Generate desired trajectory for the entire time horizon: 
-        Q = 50*eye(length(A));
-        R = 0.001*eye(size(B,2));
+        Q = 250*eye(length(A));
+        R = 0.001*eye(size(B,2)*T);
         h = zeros(T,1);
 
     % The expected cost is modified from Vitus et al. (2012): 
@@ -181,14 +181,19 @@ clear, clc, close all
 % We run an optimization problem to determine the control policy over the
 % time horizon T.
 Qhugep=kron(eye(T),Q);
+% t = ones(T,size(ob_a,1)*N*size(ob_a,3));
 
 cvx_clear
 cvx_precision best
 cvx_begin
     variable U(size(B,2)*T)
     variable Xr(size(A,2)*T,N)
+    variable z(N,1) binary
+    variable g(N,size(ob_a,3)) binary
+    variable e(T,N,size(ob_a,3)) binary
+    variable d(T,size(ob_a,1),N,size(ob_a,3)) binary
     
-    minimize( trace((sum(Xr-xrefh,2)/N)'*Qhugep/N*sum((Xr-xrefh),2)/N))
+    minimize( 1/N*trace((sum(Xr-xrefh,2))'*Qhugep*sum((Xr-xrefh),2)) + U'*R*U)
 %     minimize( sum(z) + 1/N*sum(sum(h)))
     subject to
     
@@ -200,8 +205,29 @@ cvx_begin
                     Xr((4*j+1):4*(j+1),i) == B*U(2*(j-1)+1:2*j) + A*Xr(4*(j-1)+1:4*(j),i)+G*W(4*(j-1)+1:4*j,i);
             end
         end
-          abs(U) <= 100;
-            
+          abs(U) <= 300;
+          
+      for i = 1:N
+        for j = 1:T
+            for k = 1:size(ob_a,3)
+                for l = 1:size(ob_a,1)                    
+                       ob_a(l,:,k)*Xr((4*(j-1))+1:4*j,i) - ob_b(l,k) + 500*(1-d(j,l,i,k)) >= 0;
+                      ob_a(l,:,k)*Xr((4*(j-1))+1:4*j,i) - ob_b(l,k) - 500*(d(j,l,i,k)) <= 0;
+%                        t(j,:,i,k) <= full(d(j,l,i,k));
+                    
+                end
+                
+                     -sum(d(j,:,i,k)) + size(ob_a,2) + 100*(1-e(j,i,k))-1>=0;
+                      sum(d(j,:,i,k)) - size(ob_a,2) + 100*(e(j,i,k))>=0;
+                  sum(e(:,i,k)) - T  <= 100*(1-g(i,k))-1;
+                  sum(e(:,i,k)) + T  <= 100*g(i,k);
+            end
+        end
+            sum(g(i,:)) <= 10*z(i);
+        
+      end
+      
+            1/N*sum(z)<=1;
             
 cvx_end
     
@@ -213,7 +239,7 @@ cvx_end
     hold on
     P2.plot()
     for i=1:N
-        plot(Xr(1:4:T*4,i),Xr(3:4:T*4,i),'-+');
+        plot(Xr(1:4:T*4,i),Xr(3:4:T*4,i),'+');
    end
     axis([-100 250 -100 250])
     
