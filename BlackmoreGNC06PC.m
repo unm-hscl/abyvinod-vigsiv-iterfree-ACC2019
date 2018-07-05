@@ -28,13 +28,13 @@ clear, clc, close all
         G = eye(4);
 
 % Number of particles to generate. 
-    N = 1; 
+    N = 50; 
     
 % Time Horizon.
-    T = 20;
+    T = 30;
     
 % Desired target trajectory. 
-    xref = [150 0 150 0]';
+    xref = [200 0 200 0]';
     xrefh = repmat(xref,T,N);
     
 % Randomly generate the disturbance vector from the standard normal.
@@ -44,7 +44,7 @@ clear, clc, close all
 %     plot(W(:),'+')
 
 % Consider the initial state is known:
-    x0 = [0,0,25,0]';
+    x0 = [0,0,0,0]';
 
 % Generate future state trajectories now we have sampled the disturbance.
     
@@ -76,101 +76,16 @@ clear, clc, close all
     ob_b(:,1) =  [50;50;-100;-100];
     ob_b(:,2) =  [10;120;-40;-140];
     
-    % Evaluate binary variable d which represents, given an object O1,
-    % it indicates whether the linear constraints that represent the object
-    % have been crossed by the particles. 
-    
-    d = zeros(T,size(ob_a,1),N);
-    
-    for i = 1:N
-        for j = 1:T
-            for k = 1:size(ob_a,3)
-                for l = 1:size(ob_a,1)
-                    
-                    d(j,l,i,k) = ob_a(l,:,k)*Xp((4*(j-1))+1:4*j,i)>=ob_b(l,k);
-                    
-                end
-            end
-        end
-    end
-    
-    % Sanity check done to determine if d vector is generated properly:
-    % NOTE: Please comment out if you don't need to check. 
-    
-        P1 = Polyhedron('V', [50, 50; 50, 100; 100, 100; 100, 50;]);
-        P2 = Polyhedron('V', [10, 120; 10, 140; 40, 140; 40, 120;]);
-        P1.plot()
-        hold on
-        P2.plot()
-        for i=1:N/2
-            plot(Xp(1:4:T*4,i),Xp(3:4:T*4,i),'-+');
-        end
-        axis([-100 250 -100 250])
-    
-    % Evaluate binary variable e which indicates if an obstacle has been
-    % avoided at time t.
-     for i = 1:N
-        for j = 1:T
-            for k = 1:size(ob_a,3)
-                if sum(d(j,:,i,k)) == size(d(j,:,i,k),2)
-                    e(j,i,k) = 1; 
-                else
-                    e(j,i,k) = 0;
-                end
-            end
-            
-        end
-     end
-    
-     % Evaluate binary variable g which indicates an obstacle is avoided
-     % for all time: 
-     
-     g = zeros(N,size(ob_a,3));
-     
-     for i = 1:N
-         for k = 1:1:size(ob_a,3)
-            if sum(e(:,i,k)) > 0
-                g(i,k) = 1; 
-            else
-                g(i,k) = 0;
-            end
-         end
-     end 
-     
-     % Evaluate binary variable z which indicates all obstacles are avoided
-     % for all time steps by particle i: 
-     
-     z = zeros(N,1);
-     
-     for i = 1:N
-            if sum(g(i,:)) > 0
-                z(i) = 1; 
-            else
-                z(i) = 0;
-            end
-     end
-     
-     % Generate the chance constraint to be used in the optimization
-     % problem: 
-     
-     nu = 1/N*sum(z);
      
 % Approximate the expected cost function in terms of particles.
 
     % Generate desired trajectory for the entire time horizon: 
-        Q = 50*eye(length(A));
+        Q = [200 0 0 0; 
+             0 100 0 0; 
+             0 0 200 0; 
+             0 0 0 100;];
         R = 0.001*eye(size(B,2)*T);
-        h = zeros(T,1);
 
-    % The expected cost is modified from Vitus et al. (2012): 
-        for i = 1:N
-            for j = 1:T
-
-                h(j,i) = (Xp((4*(j-1))+1:4*j,i)-xref)'*Q*(Xp((4*(j-1))+1:4*j,i)-xref);
-                
-            end
-            
-        end
         
         
         
@@ -193,7 +108,7 @@ cvx_begin
     variable e(T,N,size(ob_a,3)) binary
     variable d(T,size(ob_a,1),N,size(ob_a,3)) binary
     
-    minimize( 1/N*trace((sum(Xr-xrefh,2))'*Qhugep*sum((Xr-xrefh),2)) + U'*R*U)
+    minimize(sum(z)+1/N*trace((sum(Xr-xrefh,2))'*Qhugep*sum((Xr-xrefh),2)) + U'*R*U)
 %     minimize( sum(z) + 1/N*sum(sum(h)))
     subject to
     
@@ -205,8 +120,9 @@ cvx_begin
                     Xr((4*j+1):4*(j+1),i) == B*U(2*(j-1)+1:2*j) + A*Xr(4*(j-1)+1:4*(j),i)+G*W(4*(j-1)+1:4*j,i);
             end
         end
-          U <= 100;
-          U >= -100;
+          U <=  20;
+          U >= -20;
+          
           
       for i = 1:N
          for k = 1:size(ob_a,3)
@@ -244,7 +160,7 @@ cvx_begin
     for i = 1:N
         
             sum(g(i,:))-1 <= 100*(z(i))-1;
-           -sum(g(i,:))+1 <= 10*(1-z(i));
+           -sum(g(i,:))+1 <= 100*(1-z(i));
         
     end
       
@@ -262,7 +178,7 @@ cvx_end
     for i=1:N
         plot(Xr(1:4:T*4,i),Xr(3:4:T*4,i),'+');
    end
-    axis([-100 250 -100 250])
+    axis([-100 400 -100 400])
     
     
 % cvx_clear
