@@ -34,7 +34,7 @@ clear, clc, close all
     T = 20;
     
 % Desired target trajectory. 
-    xref = [200 0 200 0]';
+    xref = [150 0 150 0]';
     xrefh = repmat(xref,T,N);
     
 % Randomly generate the disturbance vector from the standard normal.
@@ -158,7 +158,7 @@ clear, clc, close all
 % Approximate the expected cost function in terms of particles.
 
     % Generate desired trajectory for the entire time horizon: 
-        Q = 250*eye(length(A));
+        Q = 50*eye(length(A));
         R = 0.001*eye(size(B,2)*T);
         h = zeros(T,1);
 
@@ -205,29 +205,50 @@ cvx_begin
                     Xr((4*j+1):4*(j+1),i) == B*U(2*(j-1)+1:2*j) + A*Xr(4*(j-1)+1:4*(j),i)+G*W(4*(j-1)+1:4*j,i);
             end
         end
-          abs(U) <= 300;
+          U <= 100;
+          U >= -100;
           
       for i = 1:N
-        for j = 1:T
-            for k = 1:size(ob_a,3)
-                for l = 1:size(ob_a,1)                    
-                       ob_a(l,:,k)*Xr((4*(j-1))+1:4*j,i) - ob_b(l,k) + 500*(1-d(j,l,i,k)) >= 0;
-                      ob_a(l,:,k)*Xr((4*(j-1))+1:4*j,i) - ob_b(l,k) - 500*(d(j,l,i,k)) <= 0;
-%                        t(j,:,i,k) <= full(d(j,l,i,k));
-                    
-                end
-                
-                     -sum(d(j,:,i,k)) + size(ob_a,2) + 100*(1-e(j,i,k))-1>=0;
-                      sum(d(j,:,i,k)) - size(ob_a,2) + 100*(e(j,i,k))>=0;
-                  sum(e(:,i,k)) - T  <= 100*(1-g(i,k))-1;
-                  sum(e(:,i,k)) + T  <= 100*g(i,k);
+         for k = 1:size(ob_a,3)
+            for l = 1:size(ob_a,1)  
+               for j = 1:T
+                   ob_a(l,:,k)*Xr((4*(j-1))+1:4*j,i) - ob_b(l,k) + 500*(1-d(j,l,i,k)) >= 0;
+                  ob_a(l,:,k)*Xr((4*(j-1))+1:4*j,i) - ob_b(l,k) - 500*(d(j,l,i,k)) <= 0;
+
+               end
             end
-        end
-            sum(g(i,:)) <= 10*z(i);
+           
+         end
         
       end
+     
+    for i = 1:N
+         for k = 1:size(ob_a,3) 
+               for j = 1:T
+                   
+                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(1-e(j,i,k));
+                   sum(d(j,:,i,k)) - size(ob_a,2)+1 <= 100*(e(j,i,k));
+                   
+               end
+         end
+    end
+    
+    for i = 1:N
+         for k = 1:size(ob_a,3)
+               sum(e(:,i,k))-1  <=  100*(g(i,k))-1;
+              -sum(e(:,i,k))+1  <=  100*(1-g(i,k));
+         end
+    end
+    
+    
+    for i = 1:N
+        
+            sum(g(i,:))-1 <= 100*(z(i))-1;
+           -sum(g(i,:))+1 <= 10*(1-z(i));
+        
+    end
       
-            1/N*sum(z)<=1;
+            1/N*sum(z)<=0.02;
             
 cvx_end
     
