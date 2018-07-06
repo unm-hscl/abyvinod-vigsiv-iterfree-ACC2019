@@ -2,7 +2,7 @@
 % Coder: Vignesh Sivaramakrishnan
 % 
 clc, clear, close all
-
+tic
 % Time Horizon: 
 
     T = 20; 
@@ -10,6 +10,10 @@ clc, clear, close all
 % Number of Particles: 
 
     N = 10;
+
+% Initial positition: 
+    
+    x0 = [0; 0; 0; 0];
     
 % System matrices: 
     % Sampling time of the discrete system:
@@ -29,45 +33,79 @@ clc, clear, close all
         
     % Define the trajectories to be used: 
        x = zeros(size(A,2)*(T+1),1);
-       u = zeros(size(B,1)*T,size(B,2));
-       w = zeros(size(A,1)*T,1);
-       y = zeros(size(C,1)*T,1);
-       v = zeros(size(C,1)*T,1);
+       u = zeros(size(B,1)*(T+1),size(B,2));
+       w = zeros(size(A,1)*(T+1),1);
+       y = zeros(size(C,1)*(T+1),1);
+       v = zeros(size(C,1)*(T+1),1);
+       
    % Define the matrices to the discrete time system: 
        Ad = zeros(size(A,2)*T,size(A,2));
-       Ad(1:4,1:4) = eye(4); 
        Bd = zeros(size(A,2)*T,size(B,2)*T); 
        Gd = zeros(size(A,2)*T,size(A,2)*T);
        
        
-%        New Answer! Simply define a cell vector of matrices, which must all be the same size. The rest happens automagically. Some fake data:
-% 
-% B{1} = [0,1;2,3];
-% B{2} = [4,5;6,7];
-% B{3} = [8,9;10,11];
-% B{4} = [12,13;14,15];
-% Create numeric matrix A with the elements of B on the diagonals:
-% 
-% N = numel(B);
-% X = tril(true(N));
-% Y = hankel(ones(1,N));
-% [R,C] = find(Y);
-% U = accumarray(R,find(X),[],@(n){n});
-% Z = cell(N);
-% for k = 1:N
-%     Z(U{k}) = B(k);
-% end
-% Z(~X) = {zeros(size(B{1}))};
-% A = cell2mat(Z);
-       
-       
-       for i = 2:T
-           Ad(4*(i-1)+1:4*i,:) = A^(i-1);
-           if i ~= T-1
-            Ab(4*(i-1)+1:4*(i),:) = A^(i-1);
-           else
-               Ab(1:4,:) = ones(4); 
-           end
+       for i = 1:T+2
+           
+           Ad(size(A,2)*(i-1)+1:size(A,2)*i,:) = A^(i-1);
+           
        end
-        BB = 
-        Bd(2*size(A,2)+1:end,1:size(B,2)) = Ab*B;
+       
+       for i = 1:T+1
+           if i == 1
+               
+                Ab{i}= zeros(size(A,2),size(B,2)); 
+
+           else
+               
+                Ab{i}=A^(i-2)*B; 
+                
+           end
+            
+           
+           
+       end
+       
+       N = numel(Ab);
+       X = tril(true(N));
+       Y = hankel(ones(N,1));
+       [R,C] = find(Y);
+       U = accumarray(R,find(X),[],@(n){n});
+       Z = cell(N);
+       for k = 1:N
+           Z(U{k}) = Ab(k);
+       end
+       Z(~X) = {zeros(size(Ab{1}))};
+       Bd = cell2mat(Z);
+       
+       
+       
+       
+       for i = 1:T+1
+           if i == 1
+               
+                Ga{i}= zeros(size(A,2)); 
+           
+           else
+               
+               Ga{i}=A^(i-2);
+               
+           end
+           
+       end
+
+       N = numel(Ga);
+       X = tril(true(N));
+       Y = hankel(ones(N,1));
+       [R,C] = find(Y);
+       U = accumarray(R,find(X),[],@(n){n});
+       Z = cell(N);
+       for k = 1:N
+           Z(U{k}) = Ga(k);
+       end
+       Z(~X) = {zeros(size(Ga{1}))};
+       Gd = cell2mat(Z);
+       
+   x = Ad*x0+Bd*u+Gd*w; 
+       
+       toc
+       
