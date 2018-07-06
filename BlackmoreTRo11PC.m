@@ -13,7 +13,7 @@ tic
 
 % Initial positition: 
     
-    x0 = [0; 0; 0; 0];
+    x0 = [1; 1; 1; 1];
     
 % System matrices: 
     % Sampling time of the discrete system:
@@ -33,31 +33,31 @@ tic
         
     % Define the trajectories to be used: 
        x = zeros(size(A,2)*(T+1),1);
-       u = zeros(size(B,1)*(T+1),size(B,2));
+       u = zeros((T+1)*size(B,2),1);
        w = zeros(size(A,1)*(T+1),1);
-       y = zeros(size(C,1)*(T+1),1);
-       v = zeros(size(C,1)*(T+1),1);
+       y = zeros(size(C,1)*T,1);
+       v = zeros(size(C,1)*T,1);
        
    % Define the matrices to the discrete time system: 
-       Ad = zeros(size(A,2)*T,size(A,2));
-       Bd = zeros(size(A,2)*T,size(B,2)*T); 
-       Gd = zeros(size(A,2)*T,size(A,2)*T);
+       Ad = zeros(size(A,2)*T+1,size(A,2));
+       Bd = zeros(size(A,2)*T-1,size(B,2)*(T-1)); 
+       Gd = zeros(size(A,2)*T-1,size(A,2)*T);
        
        
-       for i = 1:T+2
+       for i = 1:(T+1)
            
            Ad(size(A,2)*(i-1)+1:size(A,2)*i,:) = A^(i-1);
            
        end
        
-       for i = 1:T+1
-           if i == 1
+       for i = 0:T
+           if i == 0
                
-                Ab{i}= zeros(size(A,2),size(B,2)); 
+                Ab{i+1}= zeros(size(A,2),size(B,2)); 
 
            else
                
-                Ab{i}=A^(i-2)*B; 
+                Ab{i+1}=A^(i-1)*B; 
                 
            end
             
