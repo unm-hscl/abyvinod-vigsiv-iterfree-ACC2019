@@ -9,7 +9,7 @@ tic
     
 % Number of Particles: 
 
-    N = 50;
+    N = 5;
 
 % Initial positition: 
     
@@ -116,16 +116,18 @@ tic
     
 % Define objects:
     
-        ob_a(:,:,1) = [ 1 0  0 0;
+        ob_a = [ 1 0  0 0;
+              0 0  1 0;
+             -1 0  0 0;
+              0 0 -1 0;
+              1 0  0 0;
               0 0  1 0;
              -1 0  0 0;
               0 0 -1 0;];
-    ob_a(:,:,2) = [ 1 0  0 0;
-              0 0  1 0;
-             -1 0  0 0;
-              0 0 -1 0;];
-    ob_b(:,1) =  [50;50;-100;-100];
-    ob_b(:,2) =  [10;120;-40;-140];
+       ob_a = repmat(ob_a,1,T+1); 
+
+       ob_b =  [50;50;-100;-100;10;120;-40;-140];
+
 
 % Generate desired trajectory for the entire time horizon: 
     Q = [200 0 0 0; 
@@ -144,12 +146,9 @@ cvx_clear
 cvx_begin
     variable u(size(B,2)*T)
     variable x(size(A,2)*(T+1),N)
-    variable z(N,1) binary
-    variable g(N,size(ob_a,3)) binary
-    variable e(T,N,size(ob_a,3)) binary
-    variable d(T,size(ob_a,1),N,size(ob_a,3)) binary
+    variable d(T-1,N) binary
     
-    minimize(sum(z)+1/N*trace((sum(x-xrefh,2))'*Qhugep*sum((x-xrefh),2)) + u'*R*u)
+    minimize(1/N*trace((sum(x-xrefh,2))'*Qhugep*sum((x-xrefh),2)) + u'*R*u)
 %     minimize( sum(z) + 1/N*sum(sum(h)))
     subject to
     
@@ -159,49 +158,15 @@ cvx_begin
               
           end
 
-          abs(u) <= 20;
+          abs(u) <= 15;
                
       for i = 1:N
-         for k = 1:size(ob_a,3)
-            for l = 1:size(ob_a,1)  
-               for j = 1:T
-                   ob_a(l,:,k)*x((4*(j-1))+1:4*j,i) - ob_b(l,k) + 500*(1-d(j,l,i,k)) >= 0;
-                  ob_a(l,:,k)*x((4*(j-1))+1:4*j,i) - ob_b(l,k) - 500*(d(j,l,i,k)) <= 0;
-
-               end
-            end
-           
-         end
-        
+           for l = 1:size(ob_a(:,1))
+               ob_a(l,:)*x(:,i) - ob_b(l) <= 50000*(1-d(i))-1;
+%               -ob_a(l,:)*x(:,i) + ob_b(l) <= 50000*d(i);
+           end
       end
-     
-    for i = 1:N
-         for k = 1:size(ob_a,3) 
-               for j = 1:T
-                   
-                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(1-e(j,i,k));
-                   sum(d(j,:,i,k)) - size(ob_a,2)+1 <= 100*(e(j,i,k));
-                   
-               end
-         end
-    end
-    
-    for i = 1:N
-         for k = 1:size(ob_a,3)
-               sum(e(:,i,k))-1  <=  100*(g(i,k))-1;
-              -sum(e(:,i,k))+1  <=  100*(1-g(i,k));
-         end
-    end
-    
-    
-    for i = 1:N
-        
-            sum(g(i,:))-1 <= 100*(z(i))-1;
-           -sum(g(i,:))+1 <= 100*(1-z(i));
-        
-    end
-      
-            1/N*sum(z)<=0.02;
+%             1/N*sum(sum(d,2))<=0.02;
             
 cvx_end
     
