@@ -9,7 +9,7 @@ tic
     
 % Number of Particles: 
 
-    N = 50;
+    N = 5;
 
 % Initial positition: 
     
@@ -141,6 +141,7 @@ Qhugep=kron(eye(T+1),Q);
 % t = ones(T,size(ob_a,1)*N*size(ob_a,3));
 
 cvx_clear
+tstart = tic;
 cvx_begin
     variable u(size(B,2)*T)
     variable x(size(A,2)*(T+1),N)
@@ -203,7 +204,10 @@ cvx_begin
       
             1/N*sum(z)<=0.02;
             
-cvx_end
+t1 = toc(tstart);
+cvx_end;
+t2 = toc(tstart);
+time_to_solve = t2 - t1;
     
     x = full(x);
     figure

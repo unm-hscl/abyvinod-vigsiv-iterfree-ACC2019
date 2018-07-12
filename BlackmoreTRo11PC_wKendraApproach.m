@@ -9,7 +9,7 @@ tic
     
 % Number of Particles: 
 
-    N = 5;
+    N = 1;
 
 % Initial positition: 
     
@@ -124,9 +124,14 @@ tic
               0 0  1 0;
              -1 0  0 0;
               0 0 -1 0;];
-       ob_a = repmat(ob_a,1,T+1); 
+       for i = 1:size(ob_a,1)   
+            ob_ahuge(:,:,i) = kron(eye(T+1),diag(ob_a(i,:)));
+       end
 
-       ob_b =  [50;50;-100;-100;10;120;-40;-140];
+       ob_b =  [50 0 0 0; 0 0 50 0;-100 0 0 0; 0 0 -100 0;10 0 0 0; 0 0 120 0;-40 0 0 0;0 0 -140 0];
+       for i = 1:size(ob_a,1)  
+            ob_b_huge(:,i) = repmat(ob_b(i,:),1,T+1)'; 
+       end
 
 
 % Generate desired trajectory for the entire time horizon: 
@@ -143,10 +148,11 @@ Qhugep=kron(eye(T+1),Q);
 % t = ones(T,size(ob_a,1)*N*size(ob_a,3));
 
 cvx_clear
+tstart = tic;
 cvx_begin
     variable u(size(B,2)*T)
     variable x(size(A,2)*(T+1),N)
-    variable d(T-1,N) binary
+    variable d(T,size(ob_a(:,1))) binary
     
     minimize(1/N*trace((sum(x-xrefh,2))'*Qhugep*sum((x-xrefh),2)) + u'*R*u)
 %     minimize( sum(z) + 1/N*sum(sum(h)))
@@ -162,13 +168,16 @@ cvx_begin
                
       for i = 1:N
            for l = 1:size(ob_a(:,1))
-               ob_a(l,:)*x(:,i) - ob_b(l) <= 50000*(1-d(i))-1;
-%               -ob_a(l,:)*x(:,i) + ob_b(l) <= 50000*d(i);
+               ob_ahuge(:,:,l)*x(:,i) - ob_b_huge(:,l) <= 5000*(1-d(i,l))-1;
+%               -ob_ahuge(:,:,l)*x(:,i) + ob_b_huge(:,l) <= 5000*d(i,l);
            end
       end
 %             1/N*sum(sum(d,2))<=0.02;
             
-cvx_end
+t1 = toc(tstart);
+cvx_end;
+t2 = toc(tstart);
+time_to_solve = t2 - t1;
     
     x = full(x);
     figure
