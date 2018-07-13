@@ -166,8 +166,8 @@ cvx_begin
          for k = 1:size(ob_a,3)
             for l = 1:size(ob_a,1)  
                for j = 1:T
-                   ob_a(l,:,k)*x((4*(j-1))+1:4*j,i) - ob_b(l,k) + 500*(1-d(j,l,i,k)) >= 0;
-                  ob_a(l,:,k)*x((4*(j-1))+1:4*j,i) - ob_b(l,k) - 500*(d(j,l,i,k)) <= 0;
+                  -ob_a(l,:,k)*x((4*(j-1))+1:4*j,i) + ob_b(l,k) <= 500*(1-d(j,l,i,k));
+                  ob_a(l,:,k)*x((4*(j-1))+1:4*j,i) - ob_b(l,k) <= 500*(d(j,l,i,k));
 
                end
             end

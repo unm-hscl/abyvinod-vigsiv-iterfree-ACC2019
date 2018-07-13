@@ -9,7 +9,7 @@ T = 10;
 
 % Number of particles: 
 
-N = 5; 
+N = 15; 
 
 % Maximum/minimum bound on input: 
 
@@ -87,7 +87,7 @@ Delta = 0.05;
     
      ob_a(:,:,1) = [ 1 0;
              -1 0 ];
-    ob_b(:,1) =  [0.01;-0.02];
+    ob_b(:,1) =  [0.01;-0.4];
     
        
 cvx_clear
@@ -96,7 +96,7 @@ cvx_begin
     variable u(size(B,2)*T)
     variable x(size(A,2)*(T+1),N)
     variable z(N,1) binary
-    variable g(N,size(ob_a,3)) binary
+    variable g(N) binary
     variable e(T,N,size(ob_a,3)) binary
     variable d(T,size(ob_a,1),N,size(ob_a,3)) binary
     
@@ -113,47 +113,36 @@ cvx_begin
           abs(u) <= ulim;
           
       for i = 1:N
-         for k = 1:size(ob_a,3)
             for l = 1:size(ob_a,1)  
-               for j = 1:T
-                   -ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) + ob_b(l,k) <= 500*(d(j,l,i,k));
-                  ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) - ob_b(l,k) <= 500*(1-d(j,l,i,k)) ;
+               for j = 2:T+1
+                 -ob_a(l,:)*x((2*(j-1))+1:2*j,i) + ob_b(l) <= 500*(1-d(j-1,l,i));
+                  ob_a(l,:)*x((2*(j-1))+1:2*j,i) - ob_b(l) <= 500*(d(j-1,l,i)) ;
 
                end
             end
            
-         end
+     end
         
-      end
      
     for i = 1:N
          for k = 1:size(ob_a,3) 
                for j = 1:T
                    
-                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(1-e(j,i,k))-1;
-                   sum(d(j,:,i,k)) - size(ob_a,2) <= 100*(e(j,i,k));
+                  -sum(d(j,:,i)) + size(ob_a,2) <= 100*(1-e(j,i));
+                   sum(d(j,:,i)) - size(ob_a,2)+1 <= 100*(e(j,i));
                    
                end
          end
     end
     
-%     for i = 1:N
-%          for k = 1:size(ob_a,3)
-%                sum(e(:,i,k))-1  <=  100*(g(i,k))-1;
-%               -sum(e(:,i,k))+1  <=  100*(1-g(i,k));
-%          end
-%     end
-%     
-%     
-%     for i = 1:N
-%         
-%             sum(g(i,:))-1 <= 100*(z(i))-1;
-%            -sum(g(i,:))+1 <= 100*(1-z(i));
-%         
-%     end
-%       
-%             1/N*sum(z)<=Delta;
-            
+    for i = 1:N
+          -sum(e(:,i)) + N     <=  100*(g(i));
+           sum(e(:,i)) - N  +1  <=  100*(1-g(i));
+    end
+ 
+    1/N*sum(g)<=Delta;
+
 t1 = toc(tstart);
 cvx_end;
 t2 = toc(tstart);
+time_to_solve = t2-t1;
