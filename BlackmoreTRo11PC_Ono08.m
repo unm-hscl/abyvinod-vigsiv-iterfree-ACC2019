@@ -83,18 +83,22 @@ Delta = 0.05;
         x0(1:2,i) = [0,0];
     end
     
-% Randomly generate obstacles: 
-    h = [1 0; -1 0;];
-    h = kron(eye(T+1),h);
-    g = [0.01 -0.02];
-    g = repmat(g',T+1,1);
+% Define objects:
+    
+     ob_a(:,:,1) = [ 1 0;
+             -1 0 ];
+    ob_b(:,1) =  [0.01;-0.02];
     
        
 cvx_clear
+tstart = tic;
 cvx_begin
     variable u(size(B,2)*T)
     variable x(size(A,2)*(T+1),N)
-    variable z(1,N) integer
+    variable z(N,1) binary
+    variable g(N,size(ob_a,3)) binary
+    variable e(T,N,size(ob_a,3)) binary
+    variable d(T,size(ob_a,1),N,size(ob_a,3)) binary
     
     minimize(sum(abs(u)))
     
@@ -106,17 +110,50 @@ cvx_begin
               
           end
           
-          u <= ulim;
-          u >= 0.01;
+          abs(u) <= ulim;
           
       for i = 1:N
-          for j = 1:T
-                g - h*x(:,i) <= 10*(1-z(i))-1e-6;
-%                 h*x(:,i)-g <= 10*z(i);
-          end
+         for k = 1:size(ob_a,3)
+            for l = 1:size(ob_a,1)  
+               for j = 1:T
+                   -ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) + ob_b(l,k) <= 500*(d(j,l,i,k));
+                  ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) - ob_b(l,k) <= 500*(1-d(j,l,i,k)) ;
+
+               end
+            end
+           
+         end
+        
       end
-      
-%          1/N*sum(sum(z)) <= Delta; 
-          
-          
-cvx_end
+     
+    for i = 1:N
+         for k = 1:size(ob_a,3) 
+               for j = 1:T
+                   
+                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(1-e(j,i,k))-1;
+                   sum(d(j,:,i,k)) - size(ob_a,2) <= 100*(e(j,i,k));
+                   
+               end
+         end
+    end
+    
+%     for i = 1:N
+%          for k = 1:size(ob_a,3)
+%                sum(e(:,i,k))-1  <=  100*(g(i,k))-1;
+%               -sum(e(:,i,k))+1  <=  100*(1-g(i,k));
+%          end
+%     end
+%     
+%     
+%     for i = 1:N
+%         
+%             sum(g(i,:))-1 <= 100*(z(i))-1;
+%            -sum(g(i,:))+1 <= 100*(1-z(i));
+%         
+%     end
+%       
+%             1/N*sum(z)<=Delta;
+            
+t1 = toc(tstart);
+cvx_end;
+t2 = toc(tstart);
