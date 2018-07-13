@@ -1,23 +1,21 @@
 %% Blackmore TRo 2011 Code
 % Coder: Vignesh Sivaramakrishnan
-% 
 clc, clear, close all
-tic
 % Time Horizon: 
 
-    T = 30; 
+    T = 20; 
     
 % Number of Particles: 
 
-    N = 5;
+    N = 2;
 
 % Initial positition: 
     
-    x0 = [0; 0; 0; 0];
+    x0 = [60; 0; 75; 0];
     
 % Desired position: 
 
-    xref = [200;0;200;0;];
+    xref = [200;0;100;0;];
     xrefh = repmat(xref,T+1,N);
     
 % System matrices: 
@@ -120,12 +118,12 @@ tic
               0 0  1 0;
              -1 0  0 0;
               0 0 -1 0;];
-    ob_a(:,:,2) = [ 1 0  0 0;
-              0 0  1 0;
-             -1 0  0 0;
-              0 0 -1 0;];
-    ob_b(:,1) =  [50;50;-100;-100];
-    ob_b(:,2) =  [10;120;-40;-140];
+%     ob_a(:,:,2) = [ 1 0  0 0;
+%               0 0  1 0;
+%              -1 0  0 0;
+%               0 0 -1 0;];
+    ob_b(:,1) =  [50;50;-300;-150];
+%     ob_b(:,2) =  [10;120;-40;-140];
 
 % Generate desired trajectory for the entire time horizon: 
     Q = [200 0 0 0; 
@@ -180,8 +178,8 @@ cvx_begin
          for k = 1:size(ob_a,3) 
                for j = 1:T
                    
-                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(1-e(j,i,k));
-                   sum(d(j,:,i,k)) - size(ob_a,2)+1 <= 100*(e(j,i,k));
+                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(e(j,i,k));
+                   sum(d(j,:,i,k)) - size(ob_a,2)+1 <= 100*(1-e(j,i,k));
                    
                end
          end
@@ -189,20 +187,20 @@ cvx_begin
     
     for i = 1:N
          for k = 1:size(ob_a,3)
-               sum(e(:,i,k))  <=  100*(g(i,k));
-              -sum(e(:,i,k))+1  <=  100*(1-g(i,k));
+               sum(e(:,i,k))  <=  100*(1-g(i,k));
+              -sum(e(:,i,k))+1  <=  100*(g(i,k));
          end
     end
     
     
     for i = 1:N
         
-            sum(g(i,:)) <= 100*(z(i));
-           -sum(g(i,:))+1 <= 100*(1-z(i));
+            sum(g(i,:)) <= 100*(1-z(i));
+           -sum(g(i,:))+1 <= 100*(z(i));
         
     end
       
-            1/N*sum(z)<=0.02;
+            1/N*sum(z)<=0.05;
             
 t1 = toc(tstart);
 cvx_end;
@@ -211,15 +209,13 @@ time_to_solve = t2 - t1;
     
     x = full(x);
     figure
-    P1 = Polyhedron('V', [50, 50; 50, 100; 100, 100; 100, 50;]);
-    P2 = Polyhedron('V', [10, 120; 10, 140; 40, 140; 40, 120;]);
+    P1 = Polyhedron('V', [50, 50; 50, 150; 300, 150; 300, 50;]);
+%     P2 = Polyhedron('V', [10, 120; 10, 140; 40, 140; 40, 120;]);
     P1.plot()
     hold on
-    P2.plot()
+%     P2.plot()
     for i=1:N
         plot(x(1:4:T*4,i),x(3:4:T*4,i),'+');
    end
     axis([-100 400 -100 400])
-
-toc
        

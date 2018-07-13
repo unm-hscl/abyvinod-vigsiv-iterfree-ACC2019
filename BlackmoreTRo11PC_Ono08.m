@@ -9,7 +9,7 @@ T = 10;
 
 % Number of particles: 
 
-N = 15; 
+N = 100; 
 
 % Maximum/minimum bound on input: 
 
@@ -17,7 +17,7 @@ ulim = 0.2;
 
 % max risk: 
 
-Delta = 0.05;
+Delta = 0.1;
 
 % System matrices: 
     % Sampling time of the discrete system:
@@ -139,8 +139,8 @@ cvx_begin
           -sum(e(:,i)) + N     <=  100*(g(i));
            sum(e(:,i)) - N  +1  <=  100*(1-g(i));
     end
- 
-    1/N*sum(g)<=Delta;
+    
+    g<=Delta;
 
 t1 = toc(tstart);
 cvx_end;
