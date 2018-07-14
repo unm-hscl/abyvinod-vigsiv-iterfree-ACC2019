@@ -9,7 +9,7 @@ T = 10;
 
 % Number of particles: 
 
-N = 5; 
+N = 10; 
 
 % Maximum/minimum bound on input: 
 
@@ -45,14 +45,14 @@ Delta = 0.05;
            
     end 
 
-       for i = 1:(T+1)
-           if i == 1
+       for i = 0:T
+           if i == 0
                
-                Ab{i}= zeros(size(A,2),size(B,2)); 
+                Ab{i+1}= zeros(size(A,2),size(B,2)); 
                
            else
                
-                Ab{i}=A^(i-1)*B; 
+                Ab{i+1}=A^(i-1)*B; 
                 
            end
     
@@ -76,7 +76,9 @@ Delta = 0.05;
     cov_mat = kron(eye(T+1),cov_mat_diag); 
     for i = 1:N
         w(:,i) = mvnrnd(zeros(size(A,2)*(T+1),1),cov_mat)';
+        w(1:2,i) = [0; 0];
     end
+        
     
 % Randomly generate the initial conditions: 
     for i = 1:N
@@ -87,11 +89,12 @@ Delta = 0.05;
     
      ob_a(:,:,1) = [ 1 0;
              -1 0 ];
-    ob_b(:,1) =  [0.01;-0.02];
+    ob_b(:,1) =  [0;-0.02];
     
        
 cvx_clear
 tstart = tic;
+cvx_precision best
 cvx_begin
     variable u(size(B,2)*T)
     variable x(size(A,2)*(T+1),N)
@@ -110,50 +113,51 @@ cvx_begin
               
           end
           
-          abs(u) <= ulim;
+%      abs(u) <= 0.02;
           
-      for i = 1:N
+    for i = 1:N
          for k = 1:size(ob_a,3)
             for l = 1:size(ob_a,1)  
-               for j = 1:T
-                   -ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) + ob_b(l,k) <= 500*(d(j,l,i,k));
-                  ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) - ob_b(l,k) <= 500*(1-d(j,l,i,k)) ;
+               for j = 2:T
+                  -ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) + ob_b(l,k) <= 500*(1-d(j-1,l,i,k));
+                  ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) - ob_b(l,k) <= 500*(d(j-1,l,i,k));
 
                end
             end
            
          end
         
-      end
+    end
      
     for i = 1:N
          for k = 1:size(ob_a,3) 
                for j = 1:T
                    
-                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(1-e(j,i,k))-1;
-                   sum(d(j,:,i,k)) - size(ob_a,2) <= 100*(e(j,i,k));
+                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(e(j,i,k));
+                   sum(d(j,:,i,k)) - size(ob_a,2)+1 <= 100*(1-e(j,i,k));
                    
                end
          end
     end
     
-%     for i = 1:N
-%          for k = 1:size(ob_a,3)
-%                sum(e(:,i,k))-1  <=  100*(g(i,k))-1;
-%               -sum(e(:,i,k))+1  <=  100*(1-g(i,k));
-%          end
-%     end
-%     
-%     
-%     for i = 1:N
-%         
-%             sum(g(i,:))-1 <= 100*(z(i))-1;
-%            -sum(g(i,:))+1 <= 100*(1-z(i));
-%         
-%     end
-%       
-%             1/N*sum(z)<=Delta;
+    for i = 1:N
+         for k = 1:size(ob_a,3)
+               sum(e(:,i,k))  <=  100*(1-g(i,k));
+              -sum(e(:,i,k))+1  <=  100*(g(i,k));
+         end
+    end
+    
+    
+    for i = 1:N
+        
+            sum(g(i,:)) <= 100*(1-z(i));
+           -sum(g(i,:))+1 <= 100*(z(i));
+        
+    end
+      
+%              1/N*sum(z)<=Delta;
             
 t1 = toc(tstart);
 cvx_end;
 t2 = toc(tstart);
+time_to_solve = t2 - t1;
