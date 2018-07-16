@@ -77,34 +77,48 @@ Delta = 0.05;
     w = mvnrnd(zeros(size(A,2)*(T+1),1),cov_mat)';
     
 % Initial conditions: 
+    x0 = [0.01;0];
+    
+    
+% Generate nominal x (Note this is a code snippet taken from SReachTools):
+%     mean_concat_disturb = kron(ones(time_horizon,1), ...
+%                                sys.dist.parameters.mean);
+%     cov_concat_disturb  = kron(eye(time_horizon), ...
+%                                sys.dist.parameters.covariance);
+%     mean_X_sans_input = Ad * initial_state.parameters.mean + G *...
+%         mean_concat_disturb;
+%     cov_X_sans_input = Z * initial_state.parameters.covariance * Z' + ...
+%         G * cov_concat_disturb * G';
+    mean_concat_disturb = kron(ones(T+1,1),[0;0]);
+    cov_concat_disturb  = kron(eye(T+1), cov_mat_diag);
+    mean_X_sans_input = Ad * x0 + mean_concat_disturb;
+    cov_X_sans_input = 0 + cov_concat_disturb;
 
-    x0 = [0;0];
-    mean_x = [0.01; 0];
-    mean_x = kron(ones(T+1,1),mean_x);
-     
 % Generate obstacles: 
     h = [1 0; -1 0;];
-    h = kron(eye(T+1),h);
-    g = [0.01 -0.02];
-    g = repmat(g',T+1,1);
-% 
-    
-cvx_clear
-cvx_begin
-    
-    variable u(size(B,2)*T)
-    variable x(size(A,2)*(T+1))
-    variable del(1,N) integer
-    
-    minimize(sum(abs(u)))
-    
-    subject to
-        
-        
-        abs(u) <= ulim; 
-        h*x<=g+sqrt(2*h'*cov_mat*h)
-        
+    hbig = kron(eye(T+1),h);
+    g = [1 0.5];
+    gbig = repmat(g',T+1,1);
+% Generate intial delta: 
+    del = Delta/((T+1)*N); 
+    delta = repmat(del,size(h,1)*(T+1),1);
+    Jp =0.1;
+    epsil = 1e-6;
 
+%  while abs(sum(abs(u))-Jp)<epsil
+    Jp = sum(abs(u));
+    cvx_clear
+    cvx_begin
+        variable u(size(B,2)*T)
+        variable mean_X_w_input(size(A,2)*(T+1))
 
+        minimize(sum(abs(u)))
 
-cvx_end
+        subject to
+
+            mean_X_w_input == mean_X_sans_input + Bd*u; 
+            abs(u) <= ulim; 
+            hbig*mean_X_w_input<=gbig-sqrt(hbig'*cov_X_sans_input*hbig)*norminv(1-delta);
+    cvx_end
+%  end
+    
