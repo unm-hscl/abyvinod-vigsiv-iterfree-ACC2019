@@ -75,7 +75,7 @@ Delta = 0.1;
        Bd(:,1:size(u,1)) = Bp(:,1:size(u,1));
 
 % Randomly generate the disturbance vector from the standard normal.
-cov_mat = [0.001 0; 0 0;]; 
+cov_mat = [0.1 0; 0 0;]; 
 cov_mat_huge = kron(eye((T+1)),cov_mat); 
 for i = 1:N
     w(:,i) = mvnrnd(zeros(1,length(A)*(T+1)),cov_mat_huge)';
@@ -84,20 +84,46 @@ w(1:2,1:N) = repmat([0;0],1,N);
 
 % Generate bounds randomly. 
 
-g(1) = normrnd(-0.01,0.01);
-g(2) = -normrnd(0.01,0.01);
+g(1) = normrnd(-1,0.1);
+g(2) = -normrnd(1,0.1);
 gg = kron(ones((T-1),1),g');
+gg1 = kron(ones((T-1),1),g(1)); 
+gg2 = kron(ones((T-1),1),g(2)); 
 g_huge = kron(ones(N*(T-1),1),g'); 
 
 % Generate h matrix for all particles for all time. 
 
 h(1,:) = [1  0];
 h(2,:) = [-1 0];
-hh = kron(eye((T-1)),h); 
+hh = kron(eye((T-1)),h);
+
+     hh1 = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+            0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0; 
+            0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0; 
+            0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0;
+            0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0];
+     hh2 = [-1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+            0 0 -1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0; 
+            0 0 0 0 -1 0 0 0 0 0 0 0 0 0 0 0 0 0; 
+            0 0 0 0 0 0 -1 0 0 0 0 0 0 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 -1 0 0 0 0 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 0 0 -1 0 0 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 0 0 0;
+            0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 0;
+            0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 0];
+            
+
+% hh1 = kron(eye((T-1)),h(1,:));
+% hh2 = kron(eye((T-1)),h(2,:));
 h_huge = kron(eye(N*(T-1)),h); 
 % Generate initial conditions randomly: 
 
-x0 = mvnrnd([0.01; 0],cov_mat)';
+x0 = [-1;0];
+% x0 = mvnrnd([0.01; 0],cov_mat)';
 
 
 % Begin optimization problem: 
@@ -121,10 +147,11 @@ cvx_begin
           abs(u) <= ulim;
           
        for i = 1:N
-          hh*x(size(A,2)+1:end-size(A,2),i) - gg  <=  100*(1-z(i));
+          hh1*x(size(A,2)+1:end-size(A,2),i) - gg1  >=  100*(1-z(i));
+          hh2*x(size(A,2)+1:end-size(A,2),i) - gg2  >=  100*(1-z(i));
        end
           
-%          1/(N)*sum(z)>=1-Delta;
+       1/(N)*sum(z)>=1-Delta;
 
 cvx_end
 x = full(x); 
