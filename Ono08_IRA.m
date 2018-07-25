@@ -7,9 +7,6 @@ clc, clear, close all
 
 T = 10; 
 
-% Number of particles: 
-
-N = 5; 
 
 % Maximum/minimum bound on input: 
 
@@ -23,16 +20,16 @@ Delta = 0.05;
     % Sampling time of the discrete system:
         delT = 0.25;
     % A matrix of the 2D double integrator:
-        A = [ 1 1; 
-              0 1;];
+        A = [ 1 delT; 
+              0 1   ;];
           
     % B matrix of the 2D double integrator:
-        B = [0; 0.033]; 
+        B = [delT^2/2; delT]; 
         
     % Preallocate the trajectory vectors to be used: 
        x = zeros(size(A,2)*(T+1),1); 
        u = ones(size(B,1)*T,1);
-       w = zeros(size(x,1),N);
+       w = zeros(size(x,1)*T,1);
        
    % Define the matrices of the discrete time system: 
        Ad = [];
@@ -52,7 +49,7 @@ Delta = 0.05;
                
            else
                
-                Ab{i}=A^(i-1)*B; 
+                Ab{i}=A^(i-2)*B; 
                 
            end
     
@@ -72,14 +69,12 @@ Delta = 0.05;
        Bd = Bd(:,1:end-1);
        
 % Randomly generate the disturbance vector from the standard normal.
-    cov_mat_diag = diag([0.001 0;]); 
+    cov_mat_diag = 0.001*diag([1 0;]); 
     cov_mat = kron(eye(T+1),cov_mat_diag); 
-    w = mvnrnd(zeros(size(A,2)*(T+1),1),cov_mat)';
     
 % Initial conditions: 
-    x0 = [0.01;0];
-    
-    
+    x0 = [0.1;0];
+
 % Generate nominal x (Note this is a code snippet taken from SReachTools):
 %     mean_concat_disturb = kron(ones(time_horizon,1), ...
 %                                sys.dist.parameters.mean);
@@ -92,33 +87,34 @@ Delta = 0.05;
     mean_concat_disturb = kron(ones(T+1,1),[0;0]);
     cov_concat_disturb  = kron(eye(T+1), cov_mat_diag);
     mean_X_sans_input = Ad * x0 + mean_concat_disturb;
-    cov_X_sans_input = 0 + cov_concat_disturb;
+    cov_X_sans_input = cov_concat_disturb;
 
 % Generate obstacles: 
-    h = [1 0; -1 0;];
+    h = [-1 0; 1 0;];
     hbig = kron(eye(T+1),h);
-    g = [1 0.5];
-    gbig = repmat(g',T+1,1);
-% Generate intial delta: 
-    del = Delta/((T+1)*N); 
+    g = [0.1; 0.1];
+    gbig = repmat(g,T+1,1);
+% Generate intial delta and do some housekeeping: 
+    del = Delta/((T+1)*size(h,1)); 
     delta = repmat(del,size(h,1)*(T+1),1);
     Jp =0.1;
     epsil = 1e-6;
-
-%  while abs(sum(abs(u))-Jp)<epsil
+    sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
+while abs(sum(abs(u))-Jp)<epsil
     Jp = sum(abs(u));
     cvx_clear
     cvx_begin
         variable u(size(B,2)*T)
         variable mean_X_w_input(size(A,2)*(T+1))
-
-        minimize(sum(abs(u)))
+        variable slack_variables(size(hbig,1)) nonnegative
+        minimize norm(slack_variables,1)%((sum(abs(u))) + (sum(abs(mean_X_w_input))))
 
         subject to
 
             mean_X_w_input == mean_X_sans_input + Bd*u; 
             abs(u) <= ulim; 
-            hbig*mean_X_w_input<=gbig-sqrt(hbig'*cov_X_sans_input*hbig)*norminv(1-delta);
+%             abs(mean_X_w_input)<=0.01;
+            hbig*mean_X_w_input<=gbig-sigma_vector.*norminv(1-delta) + slack_variables; 
     cvx_end
-%  end
+ end
     
