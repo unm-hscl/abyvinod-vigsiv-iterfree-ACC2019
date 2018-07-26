@@ -69,7 +69,7 @@ ulim = 0.2;
     cov_mat = kron(eye(T+1),cov_mat_diag); 
     
 % Initial conditions: 
-    x0 = [0.07;0];
+    x0 = [0.1;0];
 
 % Generate nominal x (Note this is a code snippet taken from SReachTools):
 %     mean_concat_disturb = kron(ones(time_horizon,1), ...
@@ -88,7 +88,9 @@ ulim = 0.2;
 % Generate bounds: 
     h = [-1 0; 1 0;];
     hbig = kron(eye(T+1),h);
-    g = [0.1; 0.1];
+    h2 = [-1;1];
+    hbig2 = kron(eye(T+1),h2);
+    g = [0.17; 0.17];
     gbig = repmat(g,T+1,1);
     
     
@@ -111,7 +113,7 @@ no_linear_constraints = size(hbig,1);
 sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
 
 %% Bisection over Delta between 0 and 0.5    
-Delta_lb = 0;
+Delta_lb = 0.049;
 Delta_ub = 0.05;
 while (Delta_ub - Delta_lb) > desired_accuracy
         Delta = (Delta_ub + Delta_lb)/2;
@@ -142,7 +144,7 @@ while (Delta_ub - Delta_lb) > desired_accuracy
                 subject to
                     mean_X == mean_X_sans_input + Bd*U_vector; 
                     abs(U_vector) <= ulim; 
-%                     abs(mean_X)<=0.08;
+                    abs(mean_X)<=0.1;
                     hbig*mean_X<=gbig-scaled_norminv + slack_variables; 
             cvx_end
             
@@ -166,7 +168,7 @@ while (Delta_ub - Delta_lb) > desired_accuracy
             inactive_indx = find(slack_variables < myeps);
             % Compute relevant g-hx^\ast
             correction_deltas = gbig(inactive_indx) - ...
-                hbig(inactive_indx,:) * mean_X;
+                hbig2(inactive_indx,:) * mean_X(1:2:end);
             % Update inactive delta
             delta_vec(inactive_indx) = alpha * delta_vec(inactive_indx) +...
                 (1 - alpha) * (1 - normcdf(...
