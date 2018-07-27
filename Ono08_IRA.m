@@ -1,7 +1,7 @@
 %% Ono_IRA 2008 code
 % Coder: Vignesh Sivaramakrishnan
 % 
-clc, clear%, close all
+clc, clear, close all
 
 % Time Horizon: 
 
@@ -65,7 +65,7 @@ ulim = 1;
        Bd = Bd(:,1:end-1);
        
 % Randomly generate the disturbance vector from the standard normal.
-    cov_mat_diag = 0.0001*diag([1 0;]); 
+    cov_mat_diag = 0.001*diag([1 0;]); 
     cov_mat = kron(eye(T+1),cov_mat_diag); 
     
 % Initial conditions: 
@@ -93,6 +93,13 @@ ulim = 1;
 %     gbig = repmat(g,T,1);
     g = linspace(0.5,0.1, T);
     gbig = kron(g,[1,1])';
+    
+disp('================================')
+disp('Finding feasible deltas:');
+disp('================================')
+   
+    
+    
 %% Ono's converge alpha value
 alpha_on_iter = @(n) 0.7 * (0.98)^n;
 
@@ -108,7 +115,7 @@ desired_accuracy = 0.001;
 %% Compute M --- the number of polytopic halfspaces to worry about
 no_linear_constraints = size(hbig,1);
 
-Delta = 0.005;
+Delta = 0.05;
 
 %% Prepration for iterated risk allocation
 % Variables (re)initialized
@@ -129,6 +136,7 @@ while N_active > 0 && iter_count < 50
     % Construct the back-off (Hessem's term) in the constraints
     scaled_norminv=sigma_vector.*...
                       norminv(ones(no_linear_constraints,1)- delta_vec);
+    tstart = tic;
     cvx_begin quiet
         variable U_vector(size(B,2)*T,1);
         variable mean_X(size(mean_X_sans_input,1), 1);
@@ -138,7 +146,10 @@ while N_active > 0 && iter_count < 50
             mean_X == mean_X_sans_input + Bd*U_vector; 
             abs(U_vector) <= ulim; 
             hbig*mean_X(3:end)<=gbig - scaled_norminv + slack_variables;
-    cvx_end
+    t1 = toc(tstart);
+    cvx_end;
+    t2 = toc(tstart);
+    time_to_solve1(iter_count+1) = t2 - t1;
 
     %% Number of active/infeasible constraints via complementary
     %% slackness --- non-zero slack variables imply infeasible \delta_i
@@ -177,7 +188,7 @@ while N_active > 0 && iter_count < 50
     % \delta_i \gets \delta_i + \delta_residual/N_active 
     delta_vec(active_indx) = delta_vec(active_indx) +...
         delta_residual / N_active;
-    [iter_count N_active cvx_optval delta_vec(2:2:end)']
+%     [iter_count N_active cvx_optval delta_vec(2:2:end)']
     %% Update the iteration count
     iter_count = iter_count + 1;
 end
@@ -190,7 +201,8 @@ fprintf('Done with Delta: %1.4f, N_active: %2d\n',...
 if N_active == 0 
     % If no constraint is active, then a feasible input policy has been
     % found --- Dream higher (decrease delta)
-    disp(' Found a feasible initial delta');
+    disp(' ')
+    disp('Found a feasible initial delta!');
 
 else
     error('Given Delta requirement is not feasible.');
@@ -204,7 +216,9 @@ end
 % xlabel('time')
 % ylabel('x')
 % title('Init delta');
-disp('Now working on control objective');
+disp('================================')
+disp('Now working on control objective:');
+disp('================================')
 
 %% Prepration for iterated risk allocation
 % Variables (re)initialized
@@ -230,6 +244,7 @@ while abs(opt_value_prev - opt_value) >  1e-4
     scaled_norminv=sigma_vector.*...
                       norminv(ones(no_linear_constraints,1)- delta_vec);
     cvx_precision BEST
+    tstart = tic;
     cvx_begin quiet
         variable U_vector(size(B,2)*T,1);
         variable mean_X(size(mean_X_sans_input,1), 1);
@@ -238,7 +253,10 @@ while abs(opt_value_prev - opt_value) >  1e-4
             mean_X == mean_X_sans_input + Bd*U_vector; 
             abs(U_vector) <= ulim; 
             hbig*mean_X(3:end)<=gbig - scaled_norminv;
-    cvx_end
+    t1 = toc(tstart);
+    cvx_end;
+    t2 = toc(tstart);
+    time_to_solve2(iter_count) = t2 - t1;
     if ~strcmp(cvx_status, 'Solved')
         keyboard
     end
@@ -310,29 +328,5 @@ plot(opt_value_array)
 xlabel('iteration count')
 ylabel('cost')
 title('Final J cost');
-% % Generate intial delta and do some housekeeping: 
-%     del = Delta/((T+1)*size(h,1)); 
-%     delta = repmat(del,size(h,1)*(T+1),1);
-%     Jp =0.1;
-%     epsil = 1e-6;
-%     sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
-% while abs(norm(slack_variables,1)-Jp)<epsil
-%     if Jp ~= 0
-%         Jp = norm(slack_variables,1);
-%     end
-%     cvx_clear
-%     cvx_begin
-%         variable u(size(B,2)*T)
-%         variable mean_X_w_input(size(A,2)*(T+1))
-%         variable slack_variables(size(hbig,1)) nonnegative
-%         minimize norm(slack_variables,1)%((sum(abs(u))) + (sum(abs(mean_X_w_input))))
-% 
-%         subject to
-% 
-%             mean_X_w_input == mean_X_sans_input + Bd*u; 
-%             abs(u) <= ulim; 
-% %           abs(mean_X_w_input)<=0.01;
-%             hbig*mean_X_w_input<=gbig-sigma_vector.*norminv(1-delta) + slack_variables; 
-%     cvx_end
-%  end
-%     
+
+fprintf('Total Solve Time: %1.4f seconds\n',sum(time_to_solve1)+sum(time_to_solve2))
