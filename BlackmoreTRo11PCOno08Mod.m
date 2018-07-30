@@ -9,7 +9,7 @@ T = 30;
 
 % Number of particles: 
 
-N = 50;
+N = 100;
 
 
 % Maximum/minimum bound on input: 
