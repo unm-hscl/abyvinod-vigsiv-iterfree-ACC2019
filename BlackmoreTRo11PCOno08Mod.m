@@ -110,6 +110,7 @@ cvx_begin quiet
     minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
         sum(sum(abs(x(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T));
     
+    
     subject to
     
           for i = 1:N
