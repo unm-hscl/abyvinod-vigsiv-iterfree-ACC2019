@@ -220,6 +220,4 @@ time_to_solve = t2 - t1;
         plot(x(1:4:T*4,i),x(3:4:T*4,i),'+');
    end
     axis([-100 400 -100 400])
-
-toc
        
