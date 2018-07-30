@@ -9,7 +9,7 @@ T = 30;
 
 % Number of particles: 
 
-N = 100;
+N = 10;
 
 
 % Maximum/minimum bound on input: 
@@ -142,22 +142,8 @@ cvx_begin quiet
                end
          end
     end
- 
-    for i = 1:N
-         for k = 1:size(h,3)
-               sum(e(:,i,k))  <=  100*(1-f(i,k));
-              -sum(e(:,i,k))+1  <=  100*(f(i,k));
-         end
-    end
     
-    
-    for i = 1:N
-        
-            sum(f(i,:)) <= 100*(1-z(i));
-           -sum(f(i,:))+1 <= 100*(z(i));
-        
-    end
-      1/N*sum(z)<=0.05;
+    1/N*sum(sum(1-sum(e,1)',2),1)<=0.05;
             
 t1 = toc(tstart);
 cvx_end;
