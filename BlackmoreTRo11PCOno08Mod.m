@@ -9,7 +9,7 @@ T = 30;
 
 % Number of particles: 
 
-N = 10;
+N = 50;
 
 
 % Maximum/minimum bound on input: 
@@ -121,29 +121,16 @@ cvx_begin quiet
           abs(U_vector) <= ulim;
                
       for i = 1:N
-            for k = 1:size(h,3)
-                for l = 1:size(h,1)  
-                   for j = 1:T
-                      -h(l,:,k)*x((2*(j-1))+1:2*j,i) + g(j) <= 500*(1-d(j,l,i,k));
-                      h(l,:,k)*x((2*(j-1))+1:2*j,i) - g(j) <= 500*(d(j,l,i,k));
+        for l = 1:size(h,1)  
+           for j = 1:T
+              -h(l,:)*x((2*(j-1))+1:2*j,i) + g(j) <= 500*(1-d(j,l,i));
+              h(l,:)*x((2*(j-1))+1:2*j,i) - g(j) <= 500*(d(j,l,i));
 
-                   end
-                end
-            end
+           end
+        end
       end
-     
-    for i = 1:N
-         for k = 1:size(h,3) 
-               for j = 1:T
-                   
-                   sum(d(j,:,i,k)) - (size(h,2)-1) <= 10*(e(j,i,k))-1;
-                  -sum(d(j,:,i,k)) + (size(h,2)-1) <= 10*(1-e(j,i,k));
-                   
-               end
-         end
-    end
     
-    1/N*sum(sum(1-sum(e,1)',2),1)<=0.05;
+  1/N*sum(pos(sum(sum(d,2),1)))<=0.02;
             
 t1 = toc(tstart);
 cvx_end;
