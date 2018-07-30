@@ -17,7 +17,7 @@ ulim = 0.2;
 
 % max risk: 
 
-Delta = 0.1;
+Delta = 0.05;
 
 % System matrices: 
     % A matrix:
@@ -50,12 +50,14 @@ Delta = 0.1;
        
        for i = 1:(T+1)
            if i == 1
+
                
-                Ab{i}= zeros(size(A,2),size(B,2)); 
+                Ab{i+1}= zeros(size(A,2),size(B,2)); 
                
            else
                
-                Ab{i}=A^(i-2)*B; 
+
+                Ab{i+1}=A^(i-1)*B; 
                 
            end
     
@@ -75,59 +77,29 @@ Delta = 0.1;
        Bd(:,1:size(u,1)) = Bp(:,1:size(u,1));
 
 % Randomly generate the disturbance vector from the standard normal.
-cov_mat = [0.1 0; 0 0;]; 
-cov_mat_huge = kron(eye((T+1)),cov_mat); 
-for i = 1:N
-    w(:,i) = mvnrnd(zeros(1,length(A)*(T+1)),cov_mat_huge)';
-end
-w(1:2,1:N) = repmat([0;0],1,N);
-
-% Generate bounds randomly. 
-
-g(1) = normrnd(-1,0.1);
-g(2) = -normrnd(1,0.1);
-gg = kron(ones((T-1),1),g');
-gg1 = kron(ones((T-1),1),g(1)); 
-gg2 = kron(ones((T-1),1),g(2)); 
-g_huge = kron(ones(N*(T-1),1),g'); 
-
-% Generate h matrix for all particles for all time. 
-
-h(1,:) = [1  0];
-h(2,:) = [-1 0];
-hh = kron(eye((T-1)),h);
-
-     hh1 = [1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
-            0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0; 
-            0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0 0; 
-            0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0 0 0;
-            0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 1 0];
-     hh2 = [-1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
-            0 0 -1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0; 
-            0 0 0 0 -1 0 0 0 0 0 0 0 0 0 0 0 0 0; 
-            0 0 0 0 0 0 -1 0 0 0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 -1 0 0 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0 0 -1 0 0 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 0 0 0;
-            0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 0 0 0;
-            0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -1 0];
-            
-
-% hh1 = kron(eye((T-1)),h(1,:));
-% hh2 = kron(eye((T-1)),h(2,:));
-h_huge = kron(eye(N*(T-1)),h); 
-% Generate initial conditions randomly: 
-
-x0 = [-1;0];
-% x0 = mvnrnd([0.01; 0],cov_mat)';
-
-
-% Begin optimization problem: 
+    cov_mat_diag = diag([0.001 0;]); 
+    cov_mat = kron(eye(T+1),cov_mat_diag); 
+    for i = 1:N
+        w(:,i) = mvnrnd(zeros(size(A,2)*(T+1),1),cov_mat)';
+        w(1:2,i) = [0; 0];
+    end
+        
+    
+% Randomly generate the initial conditions: 
+    for i = 1:N
+        x0(1:2,i) = [0,0];
+    end
+    
+% Define objects:
+    
+     ob_a(:,:,1) = [ 1 0;
+             -1 0 ];
+    ob_b(:,1) =  [0;-0.02];
+    
+       
 cvx_clear
+tstart = tic;
+cvx_precision best
 cvx_begin
 
     variable u(size(B,2)*T)
@@ -144,16 +116,51 @@ cvx_begin
               
           end
           
-          abs(u) <= ulim;
+%      abs(u) <= 0.02;
           
-       for i = 1:N
-          hh1*x(size(A,2)+1:end-size(A,2),i) - gg1  >=  100*(1-z(i));
-          hh2*x(size(A,2)+1:end-size(A,2),i) - gg2  >=  100*(1-z(i));
-       end
-          
-       1/(N)*sum(z)>=1-Delta;
+    for i = 1:N
+         for k = 1:size(ob_a,3)
+            for l = 1:size(ob_a,1)  
+               for j = 2:T
+                  -ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) + ob_b(l,k) <= 500*(1-d(j-1,l,i,k));
+                  ob_a(l,:,k)*x((2*(j-1))+1:2*j,i) - ob_b(l,k) <= 500*(d(j-1,l,i,k));
 
-cvx_end
-x = full(x); 
+               end
+            end
+           
+         end
         
+    end
+     
+    for i = 1:N
+         for k = 1:size(ob_a,3) 
+               for j = 1:T
+                   
+                  -sum(d(j,:,i,k)) + size(ob_a,2) <= 100*(e(j,i,k));
+                   sum(d(j,:,i,k)) - size(ob_a,2)+1 <= 100*(1-e(j,i,k));
+                   
+               end
+         end
+    end
+    
+    for i = 1:N
+         for k = 1:size(ob_a,3)
+               sum(e(:,i,k))  <=  100*(1-g(i,k));
+              -sum(e(:,i,k))+1  <=  100*(g(i,k));
+         end
+    end
+    
+    
+    for i = 1:N
         
+            sum(g(i,:)) <= 100*(1-z(i));
+           -sum(g(i,:))+1 <= 100*(z(i));
+        
+    end
+      
+%              1/N*sum(z)<=Delta;
+            
+t1 = toc(tstart);
+cvx_end;
+t2 = toc(tstart);
+time_to_solve = t2 - t1;
