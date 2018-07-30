@@ -9,7 +9,7 @@ T = 30;
 
 % Number of particles: 
 
-N = 50;
+N = 200;
 
 
 % Maximum/minimum bound on input: 
@@ -83,8 +83,15 @@ ulim = 1;
     end
 
 % Generate bounds: 
-    h = [-1 0; 1 0;];
-    hbig(:,:,1) = kron(eye(T),h(:,:,1));
+    h = [-1 1];
+    htemp = zeros(size(A,2)*T);
+    
+    for k = 1:(size(A,2)*T)
+        htemp(k,2*(k-1)+1:2*k) = [1 0];   
+    end
+    htemp = htemp(1:(size(A,2)*T)/2,1:(size(A,2)*T));
+    
+    hbig(:,:,1) = kron(eye(T),[h(1,:); 0,0;]);
     g = linspace(0.5,0.1, T);
     gbig = kron(g,[1,1])';
     
@@ -95,16 +102,15 @@ ulim = 1;
 %% Run optimization problem for an optimal control policy
 % We run an optimization problem to determine the control policy over the
 % time horizon T.
-
+tstart = tic;
 cvx_clear
     cvx_precision BEST
 cvx_begin
     variable U_vector(size(B,2)*T,1);
     variable x(size(A,2)*T,N);
-    variable z(N,1) binary
-    variable f(N,size(h,3)) binary
-    variable e(T,N,size(h,3)) binary
-    variable d(T,size(h,1),N,size(h,3)) binary
+%     variable d(T,size(h,2),N) binary
+    variable d(N) binary
+%     variable d(size(h,2),N) binary
     
     minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
         sum(sum(abs(x(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T));
@@ -112,33 +118,42 @@ cvx_begin
     
     subject to
     
-          for i = 1:N
-              
-             x(1:end,i) == Ad(3:end,:)*x0+Bd(3:end,:)*U_vector+w(3:end,i);
-              
-          end
+   
+      x(1:end,1:N) == w(3:end,1:N)+repmat(Ad(3:end,:)*x0+...
+                      Bd(3:end,:)*U_vector,1,N);
 
-          abs(U_vector) <= ulim;
-               
+      abs(U_vector) <= ulim;
+
       for i = 1:N
-        for l = 1:size(h,1)  
-           for j = 1:T
-              -h(l,:)*x((2*(j-1))+1:2*j,i) + g(j) <= 500*(1-d(j,l,i));
-              h(l,:)*x((2*(j-1))+1:2*j,i) - g(j) <= 500*(d(j,l,i));
+%          -kron(htemp,h(1))*x(:,i) + g(:) <= 500*(1-d(:,1,i));
+%           kron(htemp,h(1))*x(:,i) - g(:) <= 500*(d(:,1,i));
+%          -kron(htemp,h(2))*x(:,i) + g(:) <= 500*(1-d(:,2,i));
+%           kron(htemp,h(2))*x(:,i) - g(:) <= 500*(d(:,2,i));
+          
+          kron(htemp,h(1))*x(:,i) - g(:) <= 500*(d(i));
+          kron(htemp,h(2))*x(:,i) - g(:) <= 500*(d(i));
 
-           end
-        end
+
+%            -kron(htemp,h(1))*x(:,i) + g(:) <= 500*(1-d(1,i));
+%             kron(htemp,h(1))*x(:,i) - g(:) <= 500*(d(1,i));
+%            -kron(htemp,h(2))*x(:,i) + g(:) <= 500*(1-d(2,i));
+%             kron(htemp,h(2))*x(:,i) - g(:) <= 500*(d(2,i));
+          
       end
     
-  1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
+%       1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
+    1/N*sum(d)<=0.05;
+%     1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
             
-t1 = toc;
+t1 = toc(tstart);
 cvx_end;
-t2 = toc;
+t2 = toc(tstart);
 time_to_solve = t2 - t1;
+fprintf('Total CVX Run Time: %1.4f seconds\n',cvx_cputime)
+disp('------------------------------------')
+fprintf('Total CVX Solve Time: %1.4f seconds\n',time_to_solve)
 
 d = full(d);
-e = full(e);
 figure(1)
 hold on
 plot(1:(T+1), [-gbig(1);-gbig(1:2:end)],'r')
