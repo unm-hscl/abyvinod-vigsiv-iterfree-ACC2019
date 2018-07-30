@@ -98,8 +98,7 @@ ulim = 1;
 
 cvx_clear
     cvx_precision BEST
-    tstart = tic;
-cvx_begin quiet
+cvx_begin
     variable U_vector(size(B,2)*T,1);
     variable x(size(A,2)*T,N);
     variable z(N,1) binary
@@ -131,11 +130,11 @@ cvx_begin quiet
         end
       end
     
-  1/N*sum(pos(sum(sum(d,2),1)))<=0.02;
+  1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
             
-t1 = toc(tstart);
+t1 = toc;
 cvx_end;
-t2 = toc(tstart);
+t2 = toc;
 time_to_solve = t2 - t1;
 
 d = full(d);
