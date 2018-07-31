@@ -9,7 +9,7 @@ T = 30;
 
 % Number of particles: 
 
-N = 200;
+N = 50;
 
 
 % Maximum/minimum bound on input: 
@@ -140,6 +140,9 @@ cvx_begin
 %             kron(htemp,h(2))*x(:,i) - g(:) <= 500*(d(2,i));
           
       end
+      
+%           repmat(kron(htemp,h(1)),N,1)*x(:,1:N) - repmat(g(:),N,1) <= 500*(d(1:N));
+%           repmat(kron(htemp,h(2)),N,1)*x(:,1:N) - repmat(g(:),N,1) <= 500*(d(1:N));
     
 %       1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
     1/N*sum(d)<=0.05;
