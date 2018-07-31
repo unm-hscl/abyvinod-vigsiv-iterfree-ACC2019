@@ -141,8 +141,8 @@ cvx_begin
           
       end
       
-%           repmat(kron(htemp,h(1)),N,1)*x(:,1:N) - repmat(g(:),N,1) <= 500*(d(1:N));
-%           repmat(kron(htemp,h(2)),N,1)*x(:,1:N) - repmat(g(:),N,1) <= 500*(d(1:N));
+          kron(eye(N),kron(htemp,h(1)))*x(:,1:N) - kron(eye(N),g(:)) <= 500*(d(1:N));
+          kron(kron(htemp,h(2)),N,1)*x(:,1:N) - kron(eye(N),g(:)) <= 500*(d(1:N));
     
 %       1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
     1/N*sum(d)<=0.05;
