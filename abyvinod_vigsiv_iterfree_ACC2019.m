@@ -4,6 +4,38 @@
 
 clc, clear, close all, cvx_clear
 
+% Load parameters: 
+
+% Time Horizon: 
+
+    T = 30; 
+    
+% Probability of being outside the safe set: 
+
+    Delta = 0.05;
+
+% Initial conditions:   
+
+    x0 = [0.4;0];
+    xtarget = linspace(-0.495,0,T)';   
+    
+% Disturbance parameters: 
+
+    cov_mat_diag = 0.001*diag([1 0;]); 
+    mean_w = [0;0];
+    
+    
+% Maximum/minimum bound on input: 
+
+    ulim = 1; 
+    
+% Sampling time of the discrete system:
+
+    delT = 0.25;
+
+% Number of particles: 
+
+    N = 100;
 
 Ono08_IRA
 BlackmoreTRo11PCOno08Mod

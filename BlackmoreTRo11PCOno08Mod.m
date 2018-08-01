@@ -1,33 +1,20 @@
 %% Blackmore TRo 2011 Code with Ono08 Dynamics & Formulation
 % Coder: Vignesh Sivaramakrishnan
 
-% Time Horizon: 
-
-T = 30; 
-
-% Number of particles: 
-
-N = 100;
-
-
-% Maximum/minimum bound on input: 
-
-ulim = 1; 
-
 % System matrices: 
 
     [Ad,Bd] = doubIntModel(T,delT);
        
-% Randomly generate the disturbance vector from the standard normal.
-    cov_mat_diag = 0.001*diag([1 0;]); 
+% Generate the cov_matrix for optimization problem given covariance.
     cov_mat = kron(eye(T+1),cov_mat_diag); 
     
-% Initial conditions: 
-    x0 = [0.4;0];
-    xtarget = linspace(-0.495,0,T)';
+% Vectorize the target trajectory for the optimization problem. 
     xtargetbig = repmat(xtarget,1,N);
 
 % Randomly generate the disturbance vector from the standard normal.
+
+    mean_w_vec = repmat(mean_w(:),1,T+1);
+    
     for i = 1:N
         w(:,i) = mvnrnd(zeros(1,size(Ad,1)),cov_mat)';
     end

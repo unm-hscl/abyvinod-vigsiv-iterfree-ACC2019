@@ -1,35 +1,17 @@
 %% Ono_IRA 2008 code
 % Coder: Abraham Vinod and Vignesh Sivaramakrishnan
 
-% Time Horizon: 
-
-    T = 30; 
-
-% Maximum/minimum bound on input: 
-
-    ulim = 1; 
-
-% Sampling time of the discrete system:
-
-    delT = 0.25;
-    
-% Probability of being outside the safe set: 
-    Delta = 0.05;
 
 % System matrices: 
 
     [Ad,Bd] = doubIntModel(T,delT);
        
-% Randomly generate the disturbance vector from the standard normal.
-    cov_mat_diag = 0.001*diag([1 0;]); 
+% Generate a large cov_mat for the optimizaiton problem.
     cov_mat = kron(eye(T+1),cov_mat_diag); 
-    
-% Initial conditions: 
-    x0 = [0.4;0];
-    xtarget = linspace(-0.495,0,T)';
+
 % Generate nominal x (Note this is a code snippet taken from SReachTools):
 
-    mean_concat_disturb = kron(ones(T+1,1),[0;0]);
+    mean_concat_disturb = kron(ones(T+1,1),mean_w);
     cov_concat_disturb  = kron(eye(T+1), cov_mat_diag);
     cov_concat_disturb(1:2,1:2) = zeros(2);
     mean_X_sans_input = Ad * x0 + mean_concat_disturb;
