@@ -1,7 +1,7 @@
 %% Blackmore TRo 2011 Code with Ono08 Dynamics & Formulation
 % Coder: Vignesh Sivaramakrishnan
 % 
-clc, clear, close all
+ clc, clear, close all
 
 % Time Horizon: 
 
@@ -9,7 +9,7 @@ T = 30;
 
 % Number of particles: 
 
-N = 50;
+N = 100;
 
 
 % Maximum/minimum bound on input: 
@@ -105,7 +105,7 @@ ulim = 1;
 tstart = tic;
 cvx_clear
     cvx_precision BEST
-cvx_begin
+cvx_begin quiet
     variable U_vector(size(B,2)*T,1);
     variable x(size(A,2)*T,N);
 %     variable d(T,size(h,2),N) binary
@@ -141,12 +141,12 @@ cvx_begin
           
       end
       
-          kron(eye(N),kron(htemp,h(1)))*x(:,1:N) - kron(eye(N),g(:)) <= 500*(d(1:N));
-          kron(kron(htemp,h(2)),N,1)*x(:,1:N) - kron(eye(N),g(:)) <= 500*(d(1:N));
+%           kron(eye(N),kron(htemp,h(1)))*x(:,1:N) - kron(eye(N),g(:)) <= 500*(d(1:N));
+%           kron(kron(htemp,h(2)),N,1)*x(:,1:N) - kron(eye(N),g(:)) <= 500*(d(1:N));
     
 %       1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
-    1/N*sum(d)<=0.05;
-%     1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
+        1/N*sum(d)<=0.05;
+%       1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
             
 t1 = toc(tstart);
 cvx_end;
@@ -157,15 +157,19 @@ disp('------------------------------------')
 fprintf('Total CVX Solve Time: %1.4f seconds\n',time_to_solve)
 
 d = full(d);
+
+%%
 figure(1)
 hold on
 plot(1:(T+1), [-gbig(1);-gbig(1:2:end)],'r')
 plot(1:(T+1), [gbig(2);gbig(2:2:end)],'r')
 plot(2:(T+1), xtarget,'go')
-plot(1:T,x(1:2:end,1:N),'.')    
+h4 = plot(1:T,x(1:2:end,1),'.'); 
+plot(1:T,x(1:2:end,2:N),'.')    
 xlabel('time')
 ylabel('x')
 title('Trajectory')
+legend([h4],{'Blackmore11 PC Method'});
 
 % figure(2);
 % hold on
