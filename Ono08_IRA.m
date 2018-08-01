@@ -79,6 +79,7 @@ while N_active > 0 && iter_count < 50
     cvx_end;
     t2 = toc(tstart);
     time_to_solve1(iter_count+1) = t2 - t1;
+    tot_time1(iter_count+1) = cvx_cputime;
 
     % Number of active/infeasible constraints via complementary
     % slackness --- non-zero slack variables imply infeasible \delta_i
@@ -180,6 +181,7 @@ opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
         cvx_end;
         t2 = toc(tstart);
         time_to_solve2(iter_count) = t2 - t1;
+        tot_time2(iter_count) = cvx_cputime;
         if ~strcmp(cvx_status, 'Solved')
             keyboard
         end
@@ -236,5 +238,8 @@ fprintf('Done with Delta: %1.4f, N_active: %2d\n\n',...
 
 disp('---------OnoIRA2008-----------')
 disp(' ')
+fprintf('Total CVX Run Time: %1.4f seconds\n',...
+    sum(tot_time1)+sum(tot_time2))
+disp('------------------------------------')
 fprintf('Total CVX Solve Time: %1.4f seconds\n\n',sum(time_to_solve1)+sum(time_to_solve2))
 
