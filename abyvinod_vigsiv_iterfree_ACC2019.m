@@ -2,8 +2,11 @@
     % This code runs comparisons of the 
 
 
-    clc, clear, close all, cvx_clear
-
+    clear;
+    close all;
+    clc;
+    cvx_clear;
+    
     % Load parameters: 
 
     % Time Horizon: 
@@ -41,6 +44,8 @@
     % with parameters above: 
 
         Ono08_IRA
+        disp(' ');
+        disp(' ');
         BlackmoreTRo11PCOno08Mod
 
 

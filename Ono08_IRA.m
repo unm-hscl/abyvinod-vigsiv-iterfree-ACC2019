@@ -1,7 +1,8 @@
 %% Ono_IRA 2008 code
 % Coder: Abraham Vinod and Vignesh Sivaramakrishnan
 
-
+disp('---------OnoIRA2008-----------')
+disp(' ')
 % System matrices: 
 
     [Ad,Bd] = doubIntModel(T,delT);
@@ -236,10 +237,9 @@ fprintf('Done with Delta: %1.4f, N_active: %2d\n\n',...
         Delta,...
         N_active);
 
-disp('---------OnoIRA2008-----------')
-disp(' ')
 fprintf('Total CVX Run Time: %1.4f seconds\n',...
     sum(tot_time1)+sum(tot_time2))
 disp('------------------------------------')
 fprintf('Total CVX Solve Time: %1.4f seconds\n\n',sum(time_to_solve1)+sum(time_to_solve2))
+fprintf('Total Run Time: %1.4f seconds\n', sum(tot_time1)+sum(tot_time2))
 

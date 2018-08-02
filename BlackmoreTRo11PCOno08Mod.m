@@ -3,6 +3,10 @@
 
 % System matrices: 
 
+    disp('---------BlackmorePC11-----------')
+    disp(' ')
+    fprintf('No. of particles: %d\n',N);
+    
     [Ad,Bd] = doubIntModel(T,delT);
        
 % Generate the cov_matrix for optimization problem given covariance.
@@ -89,8 +93,6 @@
     cvx_end;
     t2 = toc(tstart);
     time_to_solve = t2 - t1;
-    disp('---------BlackmorePC11-----------')
-    disp(' ')
     fprintf('Total CVX Run Time for %1i particles: %1.4f seconds\n',...
         N,cvx_cputime)
     disp('------------------------------------')
