@@ -54,8 +54,7 @@
     %     variable d(size(h,2),N) binary
 
         minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
-            sum(sum(abs(x(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T));
-
+            sum(sum(abs(x(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T)/N);
 
         subject to
 
@@ -86,13 +85,18 @@
     %           kron(kron(htemp,h(2)),N,1)*x(:,1:N) - kron(eye(N),g(:)) <= 500*(d(1:N));
 
     %       1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
-            1/N*sum(d)<=0.05;
+            1/N*sum(d)<=Delta;
     %       1/N*sum(pos(sum(sum(d,2),1)))<=0.05;
 
     t1 = toc(tstart);
     cvx_end;
     t2 = toc(tstart);
     time_to_solve = t2 - t1;
+    
+    blackmore_opt_mean_X = mean(x,2);
+    blackmore_opt_val = cvx_optval;
+    blackmore_opt_input_vector = U_vector;            
+    
     fprintf('Total CVX Run Time for %1i particles: %1.4f seconds\n',...
         N,cvx_cputime)
     disp('------------------------------------')
@@ -100,3 +104,5 @@
         ,N,time_to_solve)
 
     d = full(d);
+    disp('------------------------------------')
+    fprintf('Total Run Time: %1.4f seconds\n', cvx_cputime + time_to_solve)

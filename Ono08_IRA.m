@@ -3,10 +3,14 @@
 
 disp('---------OnoIRA2008-----------')
 disp(' ')
+
+if Delta>0.5
+    warning('Skipping Ono''s formulation since Delta is not <0.5');
+else    
 % System matrices: 
 
     [Ad,Bd] = doubIntModel(T,delT);
-       
+
 % Generate a large cov_mat for the optimizaiton problem.
     cov_mat = kron(eye(T+1),cov_mat_diag); 
 
@@ -23,13 +27,13 @@ disp(' ')
     hbig = kron(eye(T),h);
     g = linspace(0.5,0.1, T);
     gbig = kron(g,[1,1])';
-    
+
 disp('================================')
 disp('Finding feasible deltas:');
 disp('================================')
-   
-    
-    
+
+
+
 % Ono's converge alpha value
     alpha_on_iter = @(n) 0.7 * (0.98)^n;
 
@@ -156,7 +160,7 @@ disp('================================')
 %% Compute \sqrt{h_i^\top * \Sigma_X_no_input * h_i}
 sigma_vector = sqrt(diag(hbig*cov_X_sans_input(3:end,3:end)*hbig'));
 input_state_ratio = 0.0001;
-opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
+ono_opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
     sum(abs(mean_X(3:2:end)-xtarget))/(2*g(1)*T));
 
 % Converge to one more decimal precision
@@ -187,7 +191,7 @@ opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
             keyboard
         end
         opt_value = cvx_optval;
-        opt_value_array(iter_count+1) = opt_value;
+        ono_opt_value_array(iter_count+1) = opt_value;
 
         %% Number of active/infeasible constraints via complementary
         %% slackness --- non-zero slack variables imply infeasible \delta_i
@@ -233,6 +237,10 @@ opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
         iter_count = iter_count + 1;
     end
 
+ono_opt_mean_X = mean_X;
+ono_opt_val = ono_opt_value_array(end);
+ono_opt_input_vector = U_vector; 
+
 fprintf('Done with Delta: %1.4f, N_active: %2d\n\n',...
         Delta,...
         N_active);
@@ -241,5 +249,7 @@ fprintf('Total CVX Run Time: %1.4f seconds\n',...
     sum(tot_time1)+sum(tot_time2))
 disp('------------------------------------')
 fprintf('Total CVX Solve Time: %1.4f seconds\n\n',sum(time_to_solve1)+sum(time_to_solve2))
-fprintf('Total Run Time: %1.4f seconds\n', sum(tot_time1)+sum(tot_time2))
+disp('------------------------------------')
+fprintf('Total Run Time: %1.4f seconds\n', sum(tot_time1)+sum(tot_time2)+sum(time_to_solve1)+sum(time_to_solve2))
+end
 
