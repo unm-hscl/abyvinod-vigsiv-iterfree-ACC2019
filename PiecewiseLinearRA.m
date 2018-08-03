@@ -44,7 +44,8 @@ else
         variable onopwl_mean_X(length(mean_X_sans_input), 1);
         variable onopwl_deltai(onopwl_n_lin_const, 1);
         variable onopwl_norminvover(onopwl_n_lin_const, 1);
-        minimize (input_state_ratio*sum(abs(onopwl_U_vector))/(ulim*T) + sum(abs(onopwl_mean_X(3:2:end)-xtarget))/(2*g(1)*T));
+%         minimize (input_state_ratio*sum(abs(onopwl_U_vector))/(ulim*T) + sum(abs(onopwl_mean_X(3:2:end)-xtarget))/(2*g(1)*T));
+        minimize (sum(abs(onopwl_mean_X(3:2:end)-xtarget)));
         subject to
             onopwl_mean_X == mean_X_sans_input + Bd * onopwl_U_vector;
             abs(onopwl_U_vector) <= ulim;
