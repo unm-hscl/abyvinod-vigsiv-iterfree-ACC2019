@@ -46,8 +46,10 @@
 
     % Number of particles for BlackmorePCApproach: 
 
-        N = 200;
-    
+        N = 20;
+    % Desired accuracy
+    desired_accuracy = 0.001; 
+
     % Prep
     % System matrices: 
 
@@ -130,6 +132,7 @@ hbig = kron(eye(T),h);
 gbig = kron(g,[1,1])';    
 xtarget_mcarlo = repmat(xtarget, 1, n_mcarlo_sims);
 collection_of_input_vectors = [blackmore_opt_input_vector, ono_opt_input_vector, onopwl_opt_input_vector];
+collection_of_costs = [blackmore_opt_val, ono_opt_val, onopwl_opt_val];
 % Have a collection of string
 collection_of_method_strings = {'BlackmoreTRO11',...
                                 'OnoCDC2008    ',...
@@ -139,6 +142,7 @@ fprintf('Delta: %1.2f\n',Delta);
 for input_vec_indx = 1:3
     U_vector = collection_of_input_vectors(:,input_vec_indx);
     method_str = collection_of_method_strings{input_vec_indx};
+    true_cost = collection_of_costs(input_vec_indx);
     % This function returns the concatenated state vector stacked columnwise
     X_mcarlo = generateMonteCarloSims(...
             n_mcarlo_sims,...
@@ -149,19 +153,20 @@ for input_vec_indx = 1:3
     % all does it column-wise
     particlewise_result = all(hbig*X_mcarlo <= gbig);
     prob_estim = sum(particlewise_result)/n_mcarlo_sims;
-    cost_estim = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
-            sum(sum(abs(X_mcarlo(1:2:end,:)-xtarget_mcarlo)))/(2*g(1)*T)/n_mcarlo_sims);
+%     cost_estim = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
+%             sum(sum(abs(X_mcarlo(1:2:end,:)-xtarget_mcarlo)))/(2*g(1)*T)/n_mcarlo_sims);
+    cost_estim = sum(sum(abs(X_mcarlo(1:2:end,:)-xtarget_mcarlo)))/n_mcarlo_sims;    
     if prob_estim >= 1-Delta
-        fprintf('PASSD: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f | Cost = %1.3f\n',...
+        fprintf('PASSD: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f | Relative error in Cost = %1.3f\n',...
                 method_str,... 
                 n_mcarlo_sims,...
                 prob_estim,...
-                cost_estim);
+                (cost_estim - true_cost)/true_cost);
     else
-        fprintf('ERROR: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f | Cost = %1.3f\n',...
+        fprintf('ERROR: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f | Relative error in cost = %1.3f\n',...
                 method_str,... 
                 n_mcarlo_sims,...
                 prob_estim,...
-                cost_estim);
+                (cost_estim - true_cost)/true_cost);
     end
 end

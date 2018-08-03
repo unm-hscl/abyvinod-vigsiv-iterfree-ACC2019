@@ -32,8 +32,6 @@ disp('================================')
 
 % Define when a slack variable will be set to zero
     myeps = 1e-6;
-% Desired accuracy
-    desired_accuracy = 0.001; 
 
 % Compute M --- the number of polytopic halfspaces to worry about
     no_linear_constraints = size(hbig,1);
@@ -165,7 +163,8 @@ ono_opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
         cvx_begin quiet
             variable U_vector(size(Bd,2),1);
             variable mean_X(size(mean_X_sans_input,1), 1);
-            minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) + sum(abs(mean_X(3:2:end)-xtarget))/(2*g(1)*T));
+%             minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) + sum(abs(mean_X(3:2:end)-xtarget))/(2*g(1)*T));
+            minimize (sum(abs(mean_X(3:2:end)-xtarget)));
             subject to
                 mean_X == mean_X_sans_input + Bd*U_vector; 
                 abs(U_vector) <= ulim; 

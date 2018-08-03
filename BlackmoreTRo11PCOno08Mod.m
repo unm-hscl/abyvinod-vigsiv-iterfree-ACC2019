@@ -44,8 +44,9 @@
         variable mean_X(size(Ad,2)*T,1);
         variable d(N) binary;
 
-        minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
-            sum(sum(abs(xBl(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T)/N);
+        %minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
+            %sum(sum(abs(xBl(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T)/N);
+        minimize (sum(sum(abs(xBl(1:2:end,1:end)-xtargetbig)))/N);
 
         subject to
           mean_X == Ad(3:end,:)*x0+ Bd(3:end,:)*U_vector;
