@@ -16,12 +16,10 @@
 
 % Randomly generate the disturbance vector from the standard normal.
 
-    mean_w_vec = repmat(mean_w(:),1,T+1);
+    mean_GdTimesW = repmat(mean_w,T,N);
     
-    for i = 1:N
-        w(:,i) = mvnrnd(zeros(1,size(Ad,1)),cov_mat)';
-    end
-
+    GdTimesW = mvnrnd(mean_GdTimesW', cov_X_sans_input(3:end,3:end))';
+    
 % Generate bounds: 
     htemp = zeros(size(Ad,2)*T);
     
@@ -52,7 +50,7 @@
         subject to
           mean_X == Ad(3:end,:)*x0+ Bd(3:end,:)*U_vector;
 
-          xBl(1:end,1:N) == Gd(3:end,:)*w(3:end,1:N)+repmat(mean_X,1,N);
+          xBl(1:end,1:N) == GdTimesW+repmat(mean_X,1,N);
 
           abs(U_vector) <= ulim;
 
@@ -67,9 +65,15 @@
     t2 = toc(tstart);
     time_to_solve = t2 - t1;
     
-    blackmore_opt_mean_X = [x0;mean_X];
-    blackmore_opt_val = cvx_optval;
-    blackmore_opt_input_vector = U_vector;            
+    if strcmpi(cvx_status,'Solved')
+        blackmore_opt_mean_X = [x0;mean_X];
+        blackmore_opt_val = cvx_optval;
+        blackmore_opt_input_vector = U_vector;            
+    else
+        blackmore_opt_mean_X = nan(size(Ad,1),1);
+        blackmore_opt_val = nan;
+        blackmore_opt_input_vector = nan(size(Bd,2),1);         
+    end
     
     fprintf('Total CVX Run Time for %1i particles: %1.4f seconds\n',...
         N,cvx_cputime)

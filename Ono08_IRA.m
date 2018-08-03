@@ -4,10 +4,15 @@
 disp('---------OnoIRA2008-----------')
 disp(' ')
 
+ono_opt_mean_X = nan(size(Ad,1),1);
+ono_opt_val = nan;
+ono_opt_input_vector = nan(size(Bd,2),1); 
+ono_opt_value_array = nan;
+
 if Delta>0.5
     warning('Skipping Ono''s formulation since Delta is not <0.5');
-else    
-
+else
+    
 % Generate bounds: 
     hbig = kron(eye(T),h);
     gbig = kron(g,[1,1])';
@@ -98,7 +103,7 @@ while N_active > 0 && iter_count < 50
     % \sum_i \delta_i
         if Delta - sum(delta_vec) < 0
             disp('Breaking early since we got a negative residual');
-            break
+            error('Given Delta requirement is not feasible.');
         end
         delta_residual =  Delta - sum(delta_vec);
 
@@ -143,7 +148,6 @@ disp('================================')
 
 %% Compute \sqrt{h_i^\top * \Sigma_X_no_input * h_i}
 sigma_vector = sqrt(diag(hbig*cov_X_sans_input(3:end,3:end)*hbig'));
-input_state_ratio = 0.0001;
 ono_opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
     sum(abs(mean_X(3:2:end)-xtarget))/(2*g(1)*T));
 
