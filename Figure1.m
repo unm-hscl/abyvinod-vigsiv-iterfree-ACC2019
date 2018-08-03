@@ -24,8 +24,12 @@
     % Initial conditions:   
 
         x0 = [0.4;0];
-        xtarget = linspace(-0.2,0,T)';   
+        xtarget = linspace(-0.4,0.2,T)';   
 
+    %% Bounds on the safe set
+    h = [-1 0; 1 0;];
+    g = linspace(0.5,0.2, T);
+    
     % Disturbance parameters: 
 
         cov_mat_diag = 0.0001*diag([1 0;]); 
@@ -42,7 +46,7 @@
 
     % Number of particles for BlackmorePCApproach: 
 
-        N = 50;
+        N = 200;
     
     % Prep
     % System matrices: 
@@ -62,14 +66,17 @@
     mean_X_sans_input = [x0;mean_X_sans_input];
     cov_X_sans_input = blkdiag(zeros(2,2),cov_X_sans_input);
 
-    %% Bounds on the safe set
-    h = [-1 0; 1 0;];
-    g = linspace(0.5,0.1, T);
+    %% Cost ratios b/n input and state --- scalarization term
+    input_state_ratio = 0.0001;
 
     %% Run the following scripts (which should be in the same directory) 
     %% with parameters above: 
 
-        Ono08_IRA
+        try
+            Ono08_IRA
+        catch
+            disp('Ono''s method failed');
+        end
         disp(' ');
         disp(' ');
         PiecewiseLinearRA
@@ -90,7 +97,7 @@
         [gbig(1),gbig(1:2:end)']]'; % Note: This needs MPT to run!!
     P = Polyhedron('V',polyvertex);
     h1 = plot(P,'alpha',0.1);
-    h2 = plot(2:(T+1), xtarget,'go','MarkerSize',plot_markersize);
+    h2 = plot(2:(T+1),xtarget,'go','MarkerSize',plot_markersize,'LineWidth',2);
     h3 = plot(1:(T+1),ono_opt_mean_X(1:2:end),'bx','LineWidth',1,'MarkerSize',plot_markersize);
     h4 = plot(1:(T+1),blackmore_opt_mean_X(1:2:end,1),'ks','MarkerSize',plot_markersize);
     h5 = plot(1:(T+1),onopwl_opt_mean_X(1:2:end),'md','LineWidth',1,'MarkerSize',plot_markersize);
@@ -128,30 +135,30 @@ collection_of_method_strings = {'BlackmoreTRO11',...
                                 'OnoCDC2008    ',...
                                 'PWL OnoCDC2008'};
 % SReachTools for Monte-Carlo simulation
+fprintf('Delta: %1.2f\n',Delta);
 for input_vec_indx = 1:3
     U_vector = collection_of_input_vectors(:,input_vec_indx);
     method_str = collection_of_method_strings{input_vec_indx};
     % This function returns the concatenated state vector stacked columnwise
-    x = generateMonteCarloSims(...
+    X_mcarlo = generateMonteCarloSims(...
             n_mcarlo_sims,...
             sys,...
             x0,...
             T,...
             U_vector);
     % all does it column-wise
-    particlewise_result = all(hbig*x <= gbig);
+    particlewise_result = all(hbig*X_mcarlo <= gbig);
     prob_estim = sum(particlewise_result)/n_mcarlo_sims;
     cost_estim = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
-            sum(sum(abs(x(1:2:end,:)-xtarget_mcarlo)))/(2*g(1)*T)/n_mcarlo_sims);
-    % Add a %s before
+            sum(sum(abs(X_mcarlo(1:2:end,:)-xtarget_mcarlo)))/(2*g(1)*T)/n_mcarlo_sims);
     if prob_estim >= 1-Delta
-        fprintf('PASSD: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f \\geq 1-\\Delta  | Cost = %1.3f\n',...
+        fprintf('PASSD: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f | Cost = %1.3f\n',...
                 method_str,... 
                 n_mcarlo_sims,...
                 prob_estim,...
                 cost_estim);
     else
-        fprintf('ERROR: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f \\not\\geq 1-\\Delta | Cost = %1.3f\n',...
+        fprintf('ERROR: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f | Cost = %1.3f\n',...
                 method_str,... 
                 n_mcarlo_sims,...
                 prob_estim,...

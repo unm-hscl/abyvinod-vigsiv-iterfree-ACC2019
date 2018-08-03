@@ -4,6 +4,12 @@
 disp('---------Piecewise-linear-----------')
 disp(' ')
 
+    %% House keeping
+    onopwl_opt_val = nan;
+    onopwl_opt_mean_X = nan(length(mean_X_sans_input), 1);
+    onopwl_opt_input_vector = nan(size(Bd,2),1);
+
+
 if Delta>0.5
     warning('Skipping piecewise linear approximation (Ono''s formulation since Delta is not <0.5');
 else   
@@ -13,11 +19,6 @@ else
     hbig = kron(eye(T),h);
     gbig = kron(g,[1,1])';
 
-
-    %% House keeping
-    onopwl_opt_val = nan;
-    onopwl_opt_mean_X = nan(length(mean_X_sans_input), 1);
-    onopwl_opt_input_vector = nan(size(Bd,1),1);
 
     %% Compute M --- the number of polytopic halfspaces to worry about
     onopwl_n_lin_const = size(hbig,1);
@@ -66,6 +67,8 @@ else
         onopwl_opt_input_vector = onopwl_U_vector;
         onopwl_opt_mean_X = onopwl_mean_X;
         onopwl_opt_val = cvx_optval;
+    else
+        disp('Piecewise Ono failed');
     end
 
 disp('------------------------------------')
