@@ -23,13 +23,14 @@
 
     % Initial conditions:   
 
-        x0 = [0.2;0];
-        xtarget = linspace(0.2,0.2,T)';   
-
+%         x0 = [0.2;0];
+%         xtarget = linspace(0.2,0.2,T)';   
+        x0 = [0.4;0];
+        xtarget = linspace(-0.4,0.2,T)'; 
     %% Bounds on the safe set
     h = [-1 0; 1 0;];
-    g = linspace(0.5,0.5, T);
-    
+%     g = linspace(0.5,0.5, T);
+    g = linspace(0.5,0.2, T);
     % Disturbance parameters: 
 
         cov_mat_diag = 0.0001*diag([1 0;]); 
@@ -60,14 +61,7 @@
     sys=getChainOfIntegLtiSystem(2, delT, Polyhedron('lb',-ulim,'lb',ulim),RandomVector('Gaussian',mean_w,cov_mat_diag));    
     [Ad, Bd, Gd] = getConcatMats(sys, T);
     [~, mean_X_sans_input, cov_X_sans_input] = getHmatMeanCovForXSansInput(sys, x0, T);        
-    
-    % Updating to Vignesh's definitions
-    Ad = [zeros(sys.state_dim, size(Ad,2));Ad];
-    Bd = [zeros(sys.state_dim, size(Bd,2));Bd];
-    Gd = [zeros(sys.state_dim, size(Gd,2));Gd];
-    mean_X_sans_input = [x0;mean_X_sans_input];
-    cov_X_sans_input = blkdiag(zeros(2,2),cov_X_sans_input);
-
+        
     %% Cost ratios b/n input and state --- scalarization term
     input_state_ratio = 0.0001;
 
@@ -99,28 +93,29 @@
         [gbig(1),gbig(1:2:end)']]'; % Note: This needs MPT to run!!
     P = Polyhedron('V',polyvertex);
     h1 = plot(P,'alpha',0.1);
+    h11 = scatter(1,x0(1),plot_markersize*10,'filled');
     h2 = plot(2:(T+1),xtarget,'go','MarkerSize',plot_markersize,'LineWidth',2);
-    h3 = plot(1:(T+1),ono_opt_mean_X(1:2:end),'bx','LineWidth',1,'MarkerSize',plot_markersize);
-    h4 = plot(1:(T+1),blackmore_opt_mean_X(1:2:end,1),'ks','MarkerSize',plot_markersize);
-    h5 = plot(1:(T+1),onopwl_opt_mean_X(1:2:end),'md','LineWidth',1,'MarkerSize',plot_markersize);
+    h3 = plot(2:(T+1),ono_opt_mean_X(1:2:end),'bx','LineWidth',1,'MarkerSize',plot_markersize);
+    h4 = plot(2:(T+1),blackmore_opt_mean_X(1:2:end,1),'ks','MarkerSize',plot_markersize);
+    h5 = plot(2:(T+1),onopwl_opt_mean_X(1:2:end),'md','LineWidth',1,'MarkerSize',plot_markersize);    
 %   h4 = plot(1:T,x(1:2:end,1),'.');
 %     plot(1:T,x(1:2:end,2:N),'.')  
     xlabel('time')
     ylabel('x')
     title('Trajectory')
-    legend([h1 h2 h3 h4 h5],{'Safe Set','Target Trajectory',...
+    legend([h1 h11 h2 h3 h4 h5],{'Safe Set','Initial state','Target Trajectory',...
         sprintf('Ono2008 IRA Method (Cost: %1.3f)',ono_opt_val),sprintf('Blackmore11 PC Method (Cost: %1.3f)',blackmore_opt_val),sprintf('Piecewise linear approach (Cost: %1.3f)',onopwl_opt_val)});
     box on;
     set(gca,'FontSize',plot_fontSize)
     
-    % Figure 2 shows the cost of Ono's method with each iteration.
-    figure(2);  
-    clf
-    hold on
-    plot(ono_opt_value_array)
-    xlabel('Iteration Count')
-    ylabel('Cost, J')
-    title('Final J cost for OnoIRA2008');
+%     % Figure 2 shows the cost of Ono's method with each iteration.
+%     figure(2);  
+%     clf
+%     hold on
+%     plot(ono_opt_value_array)
+%     xlabel('Iteration Count')
+%     ylabel('Cost, J')
+%     title('Final J cost for OnoIRA2008');
     
     figure(1);
     
@@ -138,35 +133,37 @@ collection_of_method_strings = {'BlackmoreTRO11',...
                                 'OnoCDC2008    ',...
                                 'PWL OnoCDC2008'};
 % SReachTools for Monte-Carlo simulation
-fprintf('Delta: %1.2f\n',Delta);
+max_rel_abserror = 0.1;
+fprintf('Desired P{Hx<=g}: %1.2f | Desired relative abserror in cost: %1.2f\n',Delta,max_rel_abserror);
 for input_vec_indx = 1:3
     U_vector = collection_of_input_vectors(:,input_vec_indx);
     method_str = collection_of_method_strings{input_vec_indx};
     true_cost = collection_of_costs(input_vec_indx);
     % This function returns the concatenated state vector stacked columnwise
-    X_mcarlo = generateMonteCarloSims(...
+    X_mcarlo_sans_init_state = generateMonteCarloSims(...
             n_mcarlo_sims,...
             sys,...
             x0,...
             T,...
             U_vector);
     % all does it column-wise
-    particlewise_result = all(hbig*X_mcarlo <= gbig);
+    particlewise_result = all(hbig*X_mcarlo_sans_init_state <= gbig);
     prob_estim = sum(particlewise_result)/n_mcarlo_sims;
 %     cost_estim = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
 %             sum(sum(abs(X_mcarlo(1:2:end,:)-xtarget_mcarlo)))/(2*g(1)*T)/n_mcarlo_sims);
-    cost_estim = sum(sum(abs(X_mcarlo(1:2:end,:)-xtarget_mcarlo)))/n_mcarlo_sims;    
-    if prob_estim >= 1-Delta
+    cost_estim = mean(sum(abs(X_mcarlo_sans_init_state(1:2:end,:)-xtarget_mcarlo)));    
+    relative_abserror_in_cost = abs(cost_estim - true_cost)/true_cost;
+    if prob_estim >= 1-Delta && relative_abserror_in_cost <= max_rel_abserror
         fprintf('PASSD: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f | Relative error in Cost = %1.3f\n',...
                 method_str,... 
                 n_mcarlo_sims,...
                 prob_estim,...
-                (cost_estim - true_cost)/true_cost);
+                relative_abserror_in_cost);
     else
         fprintf('ERROR: %s : Monte-Carlo simulation using %1.0e particles | P{Hx<=g} = %1.3f | Relative error in cost = %1.3f\n',...
                 method_str,... 
                 n_mcarlo_sims,...
                 prob_estim,...
-                (cost_estim - true_cost)/true_cost);
+                relative_abserror_in_cost);
     end
 end

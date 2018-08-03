@@ -18,7 +18,7 @@
 
     mean_GdTimesW = repmat(mean_w,T,N);
     
-    GdTimesW = mvnrnd(mean_GdTimesW', cov_X_sans_input(3:end,3:end))';
+    GdTimesW = mvnrnd(mean_GdTimesW', cov_X_sans_input)';
     
 % Generate bounds: 
     htemp = zeros(size(Ad,2)*T);
@@ -40,16 +40,16 @@
         cvx_precision BEST
     cvx_begin quiet
         variable U_vector(size(Bd,2),1);
-        variable xBl(size(Ad,2)*T,N);
-        variable mean_X(size(Ad,2)*T,1);
+        variable xBl(size(mean_X_sans_input,1),N);
+        variable mean_X(size(mean_X_sans_input,1),1);
         variable d(N) binary;
 
         %minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
             %sum(sum(abs(xBl(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T)/N);
-        minimize (sum(sum(abs(xBl(1:2:end,1:end)-xtargetbig)))/N);
+        minimize (sum(sum(abs(xBl(1:2:end,:)-xtargetbig)))/N);
 
         subject to
-          mean_X == Ad(3:end,:)*x0+ Bd(3:end,:)*U_vector;
+          mean_X == Ad*x0+ Bd*U_vector;
 
           xBl(1:end,1:N) == GdTimesW+repmat(mean_X,1,N);
 
@@ -67,11 +67,11 @@
     time_to_solve = t2 - t1;
     
     if strcmpi(cvx_status,'Solved')
-        blackmore_opt_mean_X = [x0;mean_X];
+        blackmore_opt_mean_X = mean_X;
         blackmore_opt_val = cvx_optval;
         blackmore_opt_input_vector = U_vector;            
     else
-        blackmore_opt_mean_X = nan(size(Ad,1),1);
+        blackmore_opt_mean_X = nan(length(mean_X_sans_input),1);
         blackmore_opt_val = nan;
         blackmore_opt_input_vector = nan(size(Bd,2),1);         
     end

@@ -4,7 +4,7 @@
 disp('---------OnoIRA2008-----------')
 disp(' ')
 
-ono_opt_mean_X = nan(size(Ad,1),1);
+ono_opt_mean_X = nan(length(mean_X_sans_input),1);
 ono_opt_val = nan;
 ono_opt_input_vector = nan(size(Bd,2),1); 
 ono_opt_value_array = nan;
@@ -47,7 +47,7 @@ disp('================================')
 
 
 %% Compute \sqrt{h_i^\top * \Sigma_X_no_input * h_i}
-sigma_vector = sqrt(diag(hbig*cov_X_sans_input(3:end,3:end)*hbig'));
+sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
 N_active = no_linear_constraints;
 % Converge to one more decimal precision
 while N_active > 0 && iter_count < 50
@@ -66,7 +66,7 @@ while N_active > 0 && iter_count < 50
         subject to
             mean_X == mean_X_sans_input + Bd*U_vector; 
             abs(U_vector) <= ulim; 
-            hbig*mean_X(3:end)<=gbig - scaled_norminv + slack_variables;
+            hbig*mean_X<=gbig - scaled_norminv + slack_variables;
     t1 = toc(tstart);
     cvx_end;
     t2 = toc(tstart);
@@ -91,7 +91,7 @@ while N_active > 0 && iter_count < 50
         inactive_indx = find(slack_variables < myeps);
     % Compute relevant g-hx^\ast
         correction_deltas = gbig(inactive_indx) - ...
-            hbig(inactive_indx,:) * mean_X(3:end);
+            hbig(inactive_indx,:) * mean_X;
     % Update inactive delta
         delta_vec(inactive_indx) = alpha * delta_vec(inactive_indx) +...
             (1 - alpha) * (1 - normcdf(...
@@ -145,9 +145,8 @@ disp('================================')
 
 
 %% Compute \sqrt{h_i^\top * \Sigma_X_no_input * h_i}
-sigma_vector = sqrt(diag(hbig*cov_X_sans_input(3:end,3:end)*hbig'));
-ono_opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
-    sum(abs(mean_X(3:2:end)-xtarget))/(2*g(1)*T));
+sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
+ono_opt_value_array(1) = opt_value_prev;
 
 % Converge to one more decimal precision
     while abs(opt_value_prev - opt_value) >  1e-4
@@ -163,12 +162,12 @@ ono_opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
         cvx_begin quiet
             variable U_vector(size(Bd,2),1);
             variable mean_X(size(mean_X_sans_input,1), 1);
-%             minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) + sum(abs(mean_X(3:2:end)-xtarget))/(2*g(1)*T));
-            minimize (sum(abs(mean_X(3:2:end)-xtarget)));
+%             minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) + sum(abs(mean_X(1:2:end)-xtarget))/(2*g(1)*T));
+            minimize (sum(abs(mean_X(1:2:end)-xtarget)));
             subject to
-                mean_X == mean_X_sans_input + Bd*U_vector; 
+                mean_X == Ad*x0+ Bd*U_vector; 
                 abs(U_vector) <= ulim; 
-                hbig*mean_X(3:end)<=gbig - scaled_norminv;
+                hbig*mean_X<=gbig - scaled_norminv;
         t1 = toc(tstart);
         cvx_end;
         t2 = toc(tstart);
@@ -182,7 +181,7 @@ ono_opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
 
         %% Number of active/infeasible constraints via complementary
         %% slackness --- non-zero slack variables imply infeasible \delta_i
-        N_active=nnz( abs(hbig*mean_X(3:end) - gbig + scaled_norminv)<myeps);
+        N_active=nnz( abs(hbig*mean_X - gbig + scaled_norminv)<myeps);
 
         %% Break if N_active is zero or all are active
         if N_active == 0
@@ -198,10 +197,10 @@ ono_opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
 
         %% For all the inactive constraints, \delta_i^+ \gets \alpha
         %% \delta_i + (1-\alpha) (1-normcdf(g-hx/sigma_vec(i)))
-        inactive_indx = find(hbig*mean_X(3:end) < gbig - scaled_norminv);
+        inactive_indx = find(hbig*mean_X < gbig - scaled_norminv);
         % Compute relevant g-hx^\ast
         correction_deltas = gbig(inactive_indx) - ...
-            hbig(inactive_indx,:) * mean_X(3:end);
+            hbig(inactive_indx,:) * mean_X;
         % Update inactive delta
         delta_vec(inactive_indx) = alpha * delta_vec(inactive_indx) +...
             (1 - alpha) * (1 - normcdf(...
@@ -215,7 +214,7 @@ ono_opt_value_array(1) = (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
         delta_residual =  Delta - sum(delta_vec);
 
         %% For all the active constraints, distribute the remaining headroom
-        active_indx = find(abs(hbig*mean_X(3:end) - gbig + scaled_norminv)<myeps);
+        active_indx = find(abs(hbig*mean_X - gbig + scaled_norminv)<myeps);
         % \delta_i \gets \delta_i + \delta_residual/N_active 
         delta_vec(active_indx) = delta_vec(active_indx) +...
             delta_residual / N_active;

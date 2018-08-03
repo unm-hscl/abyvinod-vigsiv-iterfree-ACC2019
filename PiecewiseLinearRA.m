@@ -24,7 +24,7 @@ else
     onopwl_n_lin_const = size(hbig,1);
 
     %% Compute \sqrt{h_i^\top * \Sigma_X_no_input * h_i}
-    sigma_vector = sqrt(diag(hbig*cov_X_sans_input(3:end,3:end)*hbig'));
+    sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
 
     % TODO: Translate desired_accuracy to piecewise_count
     [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c, onopwl_lb_deltai,...
@@ -49,10 +49,11 @@ else
         variable onopwl_mean_X(length(mean_X_sans_input), 1);
         variable onopwl_deltai(onopwl_n_lin_const, 1);
         variable onopwl_norminvover(onopwl_n_lin_const, 1);
-%         minimize (input_state_ratio*sum(abs(onopwl_U_vector))/(ulim*T) + sum(abs(onopwl_mean_X(3:2:end)-xtarget))/(2*g(1)*T));
-        minimize (sum(abs(onopwl_mean_X(3:2:end)-xtarget)));
+%         minimize (input_state_ratio*sum(abs(onopwl_U_vector))/(ulim*T) + sum(abs(onopwl_mean_X(1:2:end)-xtarget))/(2*g(1)*T));
+%         minimize (sum(abs(onopwl_mean_X(1:2:end)-xtarget))/no_of_position_timesteps);
+        minimize (sum(abs(onopwl_mean_X(1:2:end)-xtarget)));
         subject to
-            onopwl_mean_X == mean_X_sans_input + Bd * onopwl_U_vector;
+            onopwl_mean_X == Ad*x0+  Bd * onopwl_U_vector;
             abs(onopwl_U_vector) <= ulim;
             for onopwl_deltai_indx=1:onopwl_n_lin_const
                 onopwl_norminvover(onopwl_deltai_indx) >=...
@@ -60,7 +61,7 @@ else
                     onopwl_deltai(onopwl_deltai_indx) +...
                     onopwl_invcdf_approx_c; 
             end
-            hbig*onopwl_mean_X(3:end) + sigma_vector.*...
+            hbig*onopwl_mean_X + sigma_vector.*...
                 onopwl_norminvover <= gbig;
             onopwl_deltai >= onopwl_lb_deltai;
             onopwl_deltai <= 0.5;
