@@ -51,7 +51,8 @@ else
         variable onopwl_norminvover(onopwl_n_lin_const, 1);
 %         minimize (input_state_ratio*sum(abs(onopwl_U_vector))/(ulim*T) + sum(abs(onopwl_mean_X(1:2:end)-xtarget))/(2*g(1)*T));
 %         minimize (sum(abs(onopwl_mean_X(1:2:end)-xtarget))/no_of_position_timesteps);
-        minimize (sum(abs(onopwl_mean_X(1:2:end)-xtarget)));
+%         minimize (sum(abs(onopwl_mean_X(1:2:end)-xtarget)));
+        minimize (trace(cov_X_sans_input(1:2:end,1:2:end)) + (xtarget-onopwl_mean_X(1:2:end))'*(xtarget-onopwl_mean_X(1:2:end)))
         subject to
             onopwl_mean_X == Ad*x0+  Bd * onopwl_U_vector;
             abs(onopwl_U_vector) <= ulim;

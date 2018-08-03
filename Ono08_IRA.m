@@ -163,7 +163,9 @@ ono_opt_value_array(1) = opt_value_prev;
             variable U_vector(size(Bd,2),1);
             variable mean_X(size(mean_X_sans_input,1), 1);
 %             minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) + sum(abs(mean_X(1:2:end)-xtarget))/(2*g(1)*T));
-            minimize (sum(abs(mean_X(1:2:end)-xtarget)));
+%             minimize (sum(abs(mean_X(1:2:end)-xtarget)));
+            % E[ e^t e] where e= (xtarget - x)
+            minimize (trace(cov_X_sans_input(1:2:end,1:2:end)) + (xtarget-mean_X(1:2:end))'*(xtarget-mean_X(1:2:end)))
             subject to
                 mean_X == Ad*x0+ Bd*U_vector; 
                 abs(U_vector) <= ulim; 

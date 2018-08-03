@@ -46,7 +46,7 @@
 
         %minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
             %sum(sum(abs(xBl(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T)/N);
-        minimize (sum(sum(abs(xBl(1:2:end,:)-xtargetbig)))/N);
+        minimize (sum(sum((xBl(1:2:end,:)-xtargetbig).^2))/N);
 
         subject to
           mean_X == Ad*x0+ Bd*U_vector;
