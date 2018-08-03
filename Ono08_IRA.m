@@ -7,25 +7,9 @@ disp(' ')
 if Delta>0.5
     warning('Skipping Ono''s formulation since Delta is not <0.5');
 else    
-% System matrices: 
-
-    [Ad,Bd] = doubIntModel(T,delT);
-
-% Generate a large cov_mat for the optimizaiton problem.
-    cov_mat = kron(eye(T+1),cov_mat_diag); 
-
-% Generate nominal x (Note this is a code snippet taken from SReachTools):
-
-    mean_concat_disturb = kron(ones(T+1,1),mean_w);
-    cov_concat_disturb  = kron(eye(T+1), cov_mat_diag);
-    cov_concat_disturb(1:2,1:2) = zeros(2);
-    mean_X_sans_input = Ad * x0 + mean_concat_disturb;
-    cov_X_sans_input = cov_concat_disturb;
 
 % Generate bounds: 
-    h = [-1 0; 1 0;];
     hbig = kron(eye(T),h);
-    g = linspace(0.5,0.1, T);
     gbig = kron(g,[1,1])';
 
 disp('================================')

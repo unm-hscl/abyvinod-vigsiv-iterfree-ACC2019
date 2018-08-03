@@ -7,31 +7,16 @@ disp(' ')
 if Delta>0.5
     warning('Skipping piecewise linear approximation (Ono''s formulation since Delta is not <0.5');
 else   
-% System matrices: 
 
-    [Ad,Bd] = doubIntModel(T,delT);
-
-% Generate a large cov_mat for the optimizaiton problem.
-    cov_mat = kron(eye(T+1),cov_mat_diag); 
-
-% Generate nominal x (Note this is a code snippet taken from SReachTools):
-
-    mean_concat_disturb = kron(ones(T+1,1),mean_w);
-    cov_concat_disturb  = kron(eye(T+1), cov_mat_diag);
-    cov_concat_disturb(1:2,1:2) = zeros(2);
-    onopwl_mean_X_sans_input = Ad * x0 + mean_concat_disturb;
-    cov_X_sans_input = cov_concat_disturb;
 
 % Generate bounds: 
-    h = [-1 0; 1 0;];
     hbig = kron(eye(T),h);
-    g = linspace(0.5,0.1, T);
     gbig = kron(g,[1,1])';
 
 
     %% House keeping
     onopwl_opt_val = nan;
-    onopwl_opt_mean_X = nan(length(onopwl_mean_X_sans_input), 1);
+    onopwl_opt_mean_X = nan(length(mean_X_sans_input), 1);
     onopwl_opt_input_vector = nan(size(Bd,1),1);
 
     %% Compute M --- the number of polytopic halfspaces to worry about
@@ -55,12 +40,12 @@ else
     tstart = tic;
     cvx_begin quiet
         variable onopwl_U_vector(size(Bd,2),1);
-        variable onopwl_mean_X(length(onopwl_mean_X_sans_input), 1);
+        variable onopwl_mean_X(length(mean_X_sans_input), 1);
         variable onopwl_deltai(onopwl_n_lin_const, 1);
         variable onopwl_norminvover(onopwl_n_lin_const, 1);
         minimize (input_state_ratio*sum(abs(onopwl_U_vector))/(ulim*T) + sum(abs(onopwl_mean_X(3:2:end)-xtarget))/(2*g(1)*T));
         subject to
-            onopwl_mean_X == onopwl_mean_X_sans_input + Bd * onopwl_U_vector;
+            onopwl_mean_X == mean_X_sans_input + Bd * onopwl_U_vector;
             abs(onopwl_U_vector) <= ulim;
             for onopwl_deltai_indx=1:onopwl_n_lin_const
                 onopwl_norminvover(onopwl_deltai_indx) >= onopwl_invcdf_approx_m.*...
