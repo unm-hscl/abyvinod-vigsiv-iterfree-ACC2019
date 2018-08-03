@@ -27,14 +27,19 @@ else
     sigma_vector = sqrt(diag(hbig*cov_X_sans_input(3:end,3:end)*hbig'));
 
     % TODO: Translate desired_accuracy to piecewise_count
-    [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c, onopwl_lb_deltai, max_error_onopwl]=...
+    [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c, onopwl_lb_deltai,...
+        max_error_onopwl]=...
         computeNormCdfInvOverApprox();
 
     % onopwl approach introduces an artifical conservativeness of max_gap *
     % n_lin_const
-    onopwl_artificial_error = max(max_error_onopwl, onopwl_lb_deltai) * onopwl_n_lin_const;
+    onopwl_artificial_error = max(max_error_onopwl, onopwl_lb_deltai) *...
+        onopwl_n_lin_const;
     if  onopwl_artificial_error > desired_accuracy 
-        warning(sprintf('Required accuracy: %1.3e | Error due to onopwl: %1.3e', desired_accuracy, onopwl_artificial_error));
+        warning(...
+            sprintf...
+            ('Required accuracy: %1.3e | Error due to onopwl: %1.3e',...
+            desired_accuracy, onopwl_artificial_error));
     end
 
     %% Solve the feasibility problem
@@ -50,10 +55,13 @@ else
             onopwl_mean_X == mean_X_sans_input + Bd * onopwl_U_vector;
             abs(onopwl_U_vector) <= ulim;
             for onopwl_deltai_indx=1:onopwl_n_lin_const
-                onopwl_norminvover(onopwl_deltai_indx) >= onopwl_invcdf_approx_m.*...
-                    onopwl_deltai(onopwl_deltai_indx) + onopwl_invcdf_approx_c; 
+                onopwl_norminvover(onopwl_deltai_indx) >=...
+                    onopwl_invcdf_approx_m.*...
+                    onopwl_deltai(onopwl_deltai_indx) +...
+                    onopwl_invcdf_approx_c; 
             end
-            hbig*onopwl_mean_X(3:end) + sigma_vector.* onopwl_norminvover <= gbig;
+            hbig*onopwl_mean_X(3:end) + sigma_vector.*...
+                onopwl_norminvover <= gbig;
             onopwl_deltai >= onopwl_lb_deltai;
             onopwl_deltai <= 0.5;
             sum(onopwl_deltai) <= Delta;
