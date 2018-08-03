@@ -42,23 +42,23 @@
         cvx_precision BEST
     cvx_begin quiet
         variable U_vector(size(Bd,2),1);
-        variable x(size(Ad,2)*T,N);
+        variable xBl(size(Ad,2)*T,N);
         variable mean_X(size(Ad,2)*T,1);
         variable d(N) binary;
 
         minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
-            sum(sum(abs(x(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T)/N);
+            sum(sum(abs(xBl(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T)/N);
 
         subject to
           mean_X == Ad(3:end,:)*x0+ Bd(3:end,:)*U_vector;
 
-          x(1:end,1:N) == Gd(3:end,:)*w(3:end,1:N)+repmat(mean_X,1,N);
+          xBl(1:end,1:N) == Gd(3:end,:)*w(3:end,1:N)+repmat(mean_X,1,N);
 
           abs(U_vector) <= ulim;
 
           for i = 1:N
-              kron(htemp,h(1))*x(:,i) - g(:) <= large_constant*(d(i));
-              kron(htemp,h(2))*x(:,i) - g(:) <= large_constant*(d(i));
+              kron(htemp,h(1))*xBl(:,i) - g(:) <= large_constant*(d(i));
+              kron(htemp,h(2))*xBl(:,i) - g(:) <= large_constant*(d(i));
           end
           1/N*sum(d)<=Delta;
 

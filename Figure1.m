@@ -24,7 +24,7 @@
     % Initial conditions:   
 
         x0 = [0.4;0];
-        xtarget = linspace(-0.495,0,T)';   
+        xtarget = linspace(-0.2,0,T)';   
 
     % Disturbance parameters: 
 
@@ -42,7 +42,7 @@
 
     % Number of particles for BlackmorePCApproach: 
 
-        N = 100;
+        N = 50;
     
     % Prep
     % System matrices: 
