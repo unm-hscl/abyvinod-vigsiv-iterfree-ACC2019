@@ -47,7 +47,7 @@
 
     % Number of particles for BlackmorePCApproach: 
 
-        N = 200;
+        N = 50;
     % Desired accuracy
     desired_accuracy = 0.001; 
 
