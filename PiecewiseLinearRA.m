@@ -41,7 +41,7 @@ else
             ('Required accuracy: %1.3e | Error due to onopwl: %1.3e',...
             desired_accuracy, onopwl_artificial_error));
     end
-
+    
     %% Solve the feasibility problem
     tstart = tic;
     cvx_begin quiet
@@ -65,7 +65,7 @@ else
             hbig*onopwl_mean_X + sigma_vector.*...
                 onopwl_norminvover <= gbig;
             onopwl_deltai >= onopwl_lb_deltai; 
-            onopwl_deltai <= 0.2;
+            onopwl_deltai <= 0.5;
             onopwl_norminvover <= norminv(1-onopwl_lb_deltai);
             onopwl_norminvover >= norminv(1-0.5);
             sum(onopwl_deltai) <= Delta;
