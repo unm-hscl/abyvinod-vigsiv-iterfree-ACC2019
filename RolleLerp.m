@@ -9,14 +9,16 @@ function [cdf_approx_m, cdf_approx_c,errorub,lb_x] = RolleLerp(Delta,h,errorlb,e
     x(1) = Delta ;
     i = 1;
     oLfl = 0;
+    errorlb_reset = errorlb;
 % while the resulting values do not produce obsure values, continue the PW
 % approximation: 
     while erfinv(x(i)) ~= Inf || isnan(erfinv(x(i)))~= 1
 % Reactivate the error checker to go into the the internal while loop:
+        errorlb = errorlb_reset;
         active = 1;
-%         if length(x) > 1
-%             h = abs(x(i) - x(i-1));
-%         end
+        if length(x) > 1
+            h = abs(x(i) - x(i-1));
+        end
         
         x(i+1) = x(i)-h;
 
@@ -28,8 +30,10 @@ function [cdf_approx_m, cdf_approx_c,errorub,lb_x] = RolleLerp(Delta,h,errorlb,e
         end
 % While the current error produced in the interval is not greater than
 % error specified, continue!
+        xt = x(i):-errorlb:x(i+1); 
+        secderiv = zeros(1,length(xt));
         while active == 1 
-            xt = linspace(x(i),x(i+1),100); 
+
             for j = 1:length(xt)
 %                 secderiv(j) = 1/8*(x(i+1)-x(i))^2*sqrt(2)*...
 %                     (2*pi*exp(2*erfinv(2*(1-xt(j)) - 1)^2)*...
@@ -38,18 +42,21 @@ function [cdf_approx_m, cdf_approx_c,errorub,lb_x] = RolleLerp(Delta,h,errorlb,e
                     -2*2^(1/2)*pi*exp(2*erfinv(2*xt(j) - 1).^2)*...
                     erfinv(2*xt(j) - 1);
             end
-            [max_sec_err ind2] = max(secderiv);
+            [max_sec_err ind1] = max(secderiv);
+            [min_sec_err ind2] = min(secderiv);
             prev_max_sec = max_sec_err;
-            if  errorlb <= max_sec_err && max_sec_err <= errorub &&...
-                    max_sec_err == prev_max_sec
+            prev_min_sec = min_sec_err;
+            if  errorlb <= max_sec_err && max_sec_err <= errorub
                 active = 0;
                 max_sec_err_ar(i) = max_sec_err;
 
-            elseif sum(secderiv) ~= 0 && ind2 ~= 1
+            elseif sum(secderiv) ~= 0  &&...
+                    min_sec_err >= errorlb
                 active = 1;
-                x(i+1) = xt(ind2-1);
-            else
-                break;
+                errorlb = secderiv(ind2+1);
+                xt = xt(ind2+1:end);
+                secderiv = secderiv(ind2+1:end);
+                secderiv = secderiv(1:ind1-1);
             end
             
         end
@@ -57,7 +64,7 @@ function [cdf_approx_m, cdf_approx_c,errorub,lb_x] = RolleLerp(Delta,h,errorlb,e
         
 
     
-%      fprintf('With point %i  x(i+1) = %1.4f\n',i,x(i+1))
+     fprintf('With point %i  x(i+1) = %1.4f\n',i,x(i+1))
     if length(x) > 1
         if isnan(x) == 1
             break;
