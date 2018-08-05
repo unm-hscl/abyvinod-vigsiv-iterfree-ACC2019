@@ -39,7 +39,7 @@
     %% Cost ratios b/n input and state --- scalarization term
     input_state_ratio = 0.0001;
     
-    T_array = 500; 
+    T_array = 30; 
     
     for i = 1:length(T_array)
         T = T_array(i);
