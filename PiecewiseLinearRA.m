@@ -27,9 +27,11 @@ else
     sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
 
     % TODO: Translate desired_accuracy to piecewise_count
-    [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,max_error_onopwl,...
-        onopwl_lb_deltai]=...
-        RolleLerp();
+    errorub = 1E-3;
+    errorlb = 9.5E-4;
+    Initialsearchstep = 0.04;
+[onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,max_error_onopwl,...
+        onopwl_lb_deltai] = RolleLerp(Delta,Initialsearchstep,errorlb,errorub);
 
     % onopwl approach introduces an artifical conservativeness of max_gap *
     % n_lin_const

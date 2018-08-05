@@ -1,8 +1,12 @@
 tic
 clc, clear, close
 clear;close all;
+Delta = 0.2;
+errorub = 1E-3;
+errorlb = 1E-4;
+h = 0.025;
 [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,max_error_onopwl,...
-        onopwl_lb_deltai] = RolleLerp();
+        onopwl_lb_deltai] = RolleLerp(Delta,h,errorlb,errorub);
 x=onopwl_lb_deltai:1e-6:0.2;
 y=max(onopwl_invcdf_approx_m'*x+onopwl_invcdf_approx_c');
 y_true = norminv(1-x);
