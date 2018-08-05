@@ -3,27 +3,28 @@ clc, clear, close
 % Define the second derivative of error function as a standin for norminv.
 % initialize x0 and x1 along with iteration, i, and the precision to move
 % along: 
-    x(1) = 0.5;
-    h = 0.1;
-    i = 1;
-    precision = 1E-4; 
     error = 1E-4;
+    precision = 1E-6;
+    x(1) = precision;
+    h = precision;
+    i = 1; 
 % while the resulting values do not produce obsure values, continue the PW
 % approximation: 
     while erfinv(x(i)) ~= Inf || isnan(erfinv(x(i)))~= 1
 % Reactivate the error checker to go into the the internal while loop:
         active = 1;
 % Let initial x1 be shifted by some spacing h: 
-        x(i+1) = x(i)-h;
+        x(i+1) = x(i)+h;
 % If with the spacing we end up with x(i+1) being negative, then switch it
 % to zero: 
-        if x(i+1) < 0 
-            x(i+1) = 0;
+        if x(i+1) >= 0.5 
+            x = x(1:(end-1));
+            break;
         end
 % While the current error produced in the interval is not greater than
 % error specified, continue!
         while active == 1
-            xt = x(i):-precision:x(i+1); 
+            xt = x(i):precision:x(i+1); 
             y = zeros(1,length(xt));
             for j = 1:length(xt)
                 y(j) = norminv(1-x(i))+(norminv(1-x(i+1))-...
@@ -37,7 +38,7 @@ clc, clear, close
             [max_sec ind2] = max(secderiv);
             max_err = 1/8*(x(i+1)-x(i))^2*max_sec;
             if max_error >= max_err && max_err >= error
-                x(i+1) = xt(ind1-1);
+                x(i+1) = x(i+1)+h;
                 active = 1;
             else
                 active = 0;
@@ -55,8 +56,8 @@ clc, clear, close
     i = i+1;
 
     end
-    
-    for indx_x = 1:length(x)
+    x = fliplr(x);
+    for indx_x = 1:(length(x)-1)
         y_2 = norminv(1-x(indx_x+1));
         y_1 = norminv(1-x(indx_x));
         x_2 = x(indx_x + 1);

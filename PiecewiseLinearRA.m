@@ -27,13 +27,13 @@ else
     sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
 
     % TODO: Translate desired_accuracy to piecewise_count
-    [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c, onopwl_lb_deltai,...
-        max_error_onopwl]=...
-        computeNormCdfInvOverApprox();
+    [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,max_error_onopwl,...
+        onopwl_lb_deltai]=...
+        RolleLerp();
 
     % onopwl approach introduces an artifical conservativeness of max_gap *
     % n_lin_const
-    onopwl_artificial_error = max(max_error_onopwl, onopwl_lb_deltai) *...
+    onopwl_artificial_error = max(max_error_onopwl) *...
         onopwl_n_lin_const;
     if  onopwl_artificial_error > desired_accuracy 
         warning(...
@@ -44,7 +44,7 @@ else
     
     %% Solve the feasibility problem
     tstart = tic;
-    cvx_begin quiet
+    cvx_begin 
         variable onopwl_U_vector(size(Bd,2),1);
         variable onopwl_mean_X(length(mean_X_sans_input), 1);
         variable onopwl_deltai(onopwl_n_lin_const, 1);
@@ -66,8 +66,6 @@ else
                 onopwl_norminvover <= gbig;
             onopwl_deltai >= onopwl_lb_deltai; 
             onopwl_deltai <= 0.5;
-            onopwl_norminvover <= norminv(1-onopwl_lb_deltai);
-            onopwl_norminvover >= norminv(1-0.5);
             sum(onopwl_deltai) <= Delta;
      t1 = toc(tstart);
      cvx_end;
