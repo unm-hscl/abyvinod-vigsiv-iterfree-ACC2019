@@ -12,10 +12,6 @@
     cd('../');
     % Load parameters: 
 
-    % Time Horizon: 
-
-        T = 30; 
-
     % Probability of being outside the safe set: 
 
         Delta = 0.05;
@@ -43,7 +39,7 @@
     %% Cost ratios b/n input and state --- scalarization term
     input_state_ratio = 0.0001;
     
-    T_array = 90; 
+    T_array = 500; 
     
     for i = 1:length(T_array)
         T = T_array(i);

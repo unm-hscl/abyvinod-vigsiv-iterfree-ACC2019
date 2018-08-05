@@ -44,7 +44,7 @@ else
     
     %% Solve the feasibility problem
     tstart = tic;
-    cvx_begin 
+    cvx_begin quiet
         variable onopwl_U_vector(size(Bd,2),1);
         variable onopwl_mean_X(length(mean_X_sans_input), 1);
         variable onopwl_deltai(onopwl_n_lin_const, 1);

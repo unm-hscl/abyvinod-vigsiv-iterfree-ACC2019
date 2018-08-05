@@ -228,7 +228,7 @@ ono_opt_value_array(1) = opt_value_prev;
 ono_opt_mean_X = mean_X;
 ono_opt_val = ono_opt_value_array(end);
 ono_opt_input_vector = U_vector; 
-
+ono_time_to_solve = sum(time_to_solve1)+sum(time_to_solve2);
 fprintf('Done with Delta: %1.4f, N_active: %2d\n\n',...
         Delta,...
         N_active);
