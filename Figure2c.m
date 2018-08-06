@@ -210,7 +210,7 @@ end
         set(gca,'FontSize',plot_fontSize)
 
         figure(1);
-        print -dpng Figure2b1.png
+        print -dpng Figure2c1.png
 
         
     %% Plotting the time to solve the given trajectory and marking when
@@ -256,5 +256,5 @@ end
         end
         box on;
         set(gca,'FontSize',plot_fontSize)
-        print -dpng Figure2b2.png
+        print -dpng Figure2c2.png
         
