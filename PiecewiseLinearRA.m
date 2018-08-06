@@ -66,7 +66,7 @@ else
             end
             hbig*onopwl_mean_X + sigma_vector.*...
                 onopwl_norminvover <= gbig;
-            onopwl_deltai >= onopwl_lb_deltai; 
+            onopwl_deltai >= 1.5E-6; 
             onopwl_deltai <= 0.5;
             sum(onopwl_deltai) <= Delta;
      t1 = toc(tstart);

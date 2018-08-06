@@ -38,32 +38,30 @@
         
     %% Cost ratios b/n input and state --- scalarization term
     input_state_ratio = 0.0001;
-    
-    T_array = 20:10:200; 
+    x0 = [0.4;0];
+    T_array = 20:10:80; 
     
     for i = 1:length(T_array)
         T = T_array(i);
-        % Initial conditions:    
-        x0 = [0.4;0];
-        xtarget = linspace(-0.2,0,T)'; 
+        xtarget = linspace(-0.4,0.2,T)'; 
     %% Bounds on the safe set
     h = [-1 0; 1 0;];
 %     g = linspace(0.5,0.5, T);
-    g = linspace(0.5,0.5, T);
-    % Disturbance parameters: 
-        
-    % Prep
+    g = linspace(0.5,0.2, T);
+            % Prep
     % System matrices: 
 
-    % Generate a large cov_mat for the optimizaiton problem.
-        cov_mat = kron(eye(T+1),cov_mat_diag); 
+% Generate a large cov_mat for the optimizaiton problem.
+    cov_mat = kron(eye(T+1),cov_mat_diag); 
 
-    % Generate nominal x (Note this is a code snippet taken from SReachTools):
-        sys=getChainOfIntegLtiSystem(2, delT, Polyhedron('lb',-ulim,'lb',ulim),RandomVector('Gaussian',mean_w,cov_mat_diag));    
-        [Ad, Bd, Gd] = getConcatMats(sys, T);
-        [~, mean_X_sans_input, cov_X_sans_input] = getHmatMeanCovForXSansInput(sys, x0, T);      
+% Generate nominal x (Note this is a code snippet taken from SReachTools):
+    sys=getChainOfIntegLtiSystem(2, delT, Polyhedron('lb',-ulim,'lb',ulim),RandomVector('Gaussian',mean_w,cov_mat_diag));    
+    [Ad, Bd, Gd] = getConcatMats(sys, T);
+    [~, mean_X_sans_input, cov_X_sans_input] = getHmatMeanCovForXSansInput(sys, x0, T);        
         
-        
+    %% Cost ratios b/n input and state --- scalarization term
+    input_state_ratio = 0.0001;
+
     %% Run the following scripts (which should be in the same directory) 
     %% with parameters above: 
 

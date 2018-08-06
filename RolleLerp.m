@@ -14,9 +14,9 @@ function [cdf_approx_m, cdf_approx_c,errorub,lb_x] = RolleLerp(Delta,h,errorlb,e
     while erfinv(x(i)) ~= Inf || isnan(erfinv(x(i)))~= 1
 % Reactivate the error checker to go into the the internal while loop:
         active = 1;
-%         if length(x) > 1
-%             h = abs(x(i) - x(i-1));
-%         end
+        if length(x) > 40
+            h = abs(x(i) - x(i-1));
+        end
         
         x(i+1) = x(i)-h;
 

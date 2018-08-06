@@ -14,7 +14,7 @@
 
     % Time Horizon: 
 
-        T = 30; 
+        T = 50; 
 
     % Probability of being outside the safe set: 
 
@@ -47,7 +47,7 @@
 
     % Number of particles for BlackmorePCApproach: 
 
-        N = 50;
+        N = 5;
     % Desired accuracy
     desired_accuracy = 0.001; 
 
