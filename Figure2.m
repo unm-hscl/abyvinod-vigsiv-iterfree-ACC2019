@@ -39,17 +39,24 @@
     %% Cost ratios b/n input and state --- scalarization term
     input_state_ratio = 0.0001;
     
-    T_array = 20:10:200; 
+    maxlierror = 1E-3;
+    lbdelta = 1E-4;
+    [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,...
+    onopwl_lb_deltai] = RolleLerpClosedForm(Delta,lbdelta,maxlierror);
+    
+    T_array = 20:10:80; 
     
     for i = 1:length(T_array)
         T = T_array(i);
         % Initial conditions:    
         x0 = [0.4;0];
-        xtarget = linspace(-0.2,0,T)'; 
+%         xtarget = linspace(-0.4,-0.2,T)'; 
+xtarget = linspace(-0.5,-0.2,T)';
     %% Bounds on the safe set
     h = [-1 0; 1 0;];
 %     g = linspace(0.5,0.5, T);
-    g = linspace(0.5,0.5, T);
+%     g = linspace(0.5,0.3, T);
+ g = linspace(0.5,0.3, T);
     % Disturbance parameters: 
         
     % Prep

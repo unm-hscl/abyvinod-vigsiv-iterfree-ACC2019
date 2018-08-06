@@ -17,12 +17,6 @@ else
     hbig = kron(eye(T),h);
     gbig = kron(g,[1,1])';
 
-disp('================================')
-disp('Finding feasible deltas:');
-disp('================================')
-
-
-
 % Ono's converge alpha value
     alpha_on_iter = @(n) 0.7 * (0.98)^n;
 
@@ -129,11 +123,6 @@ else
         error('Given Delta requirement is not feasible.');
 end
 
-
-disp('================================')
-disp('Now working on control objective:');
-disp('================================')
-
 %% Prepration for main iterated risk allocation problem
 % Variables (re)initialized
     iter_count = 1;                 % No. of iterations done in Ono's risk
@@ -162,8 +151,6 @@ ono_opt_value_array(1) = opt_value_prev;
         cvx_begin quiet
             variable U_vector(size(Bd,2),1);
             variable mean_X(size(mean_X_sans_input,1), 1);
-%             minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) + sum(abs(mean_X(1:2:end)-xtarget))/(2*g(1)*T));
-%             minimize (sum(abs(mean_X(1:2:end)-xtarget)));
             % E[ e^t e] where e= (xtarget - x)
             minimize (trace(cov_X_sans_input(1:2:end,1:2:end)) + (xtarget-mean_X(1:2:end))'*(xtarget-mean_X(1:2:end)))
             subject to

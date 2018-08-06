@@ -26,23 +26,6 @@ else
     %% Compute \sqrt{h_i^\top * \Sigma_X_no_input * h_i}
     sigma_vector = sqrt(diag(hbig*cov_X_sans_input*hbig'));
 
-    % TODO: Translate desired_accuracy to piecewise_count
-    errorub = 1E-3;
-    errorlb = 9.5E-4;
-    Initialsearchstep = 0.04;
-[onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,max_error_onopwl,...
-        onopwl_lb_deltai] = RolleLerp(Delta,Initialsearchstep,errorlb,errorub);
-
-    % onopwl approach introduces an artifical conservativeness of max_gap *
-    % n_lin_const
-    onopwl_artificial_error = max(max_error_onopwl) *...
-        onopwl_n_lin_const;
-    if  onopwl_artificial_error > desired_accuracy 
-        warning(...
-            sprintf...
-            ('Required accuracy: %1.3e | Error due to onopwl: %1.3e',...
-            desired_accuracy, onopwl_artificial_error));
-    end
     
     %% Solve the feasibility problem
     tstart = tic;
@@ -81,7 +64,7 @@ else
         onopwl_opt_mean_X = onopwl_mean_X;
         onopwl_opt_val = cvx_optval;
     else
-        disp('Piecewise Ono failed');
+        error('Piecewise Ono failed');
     end
 
 disp('------------------------------------')
