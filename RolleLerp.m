@@ -30,7 +30,7 @@ function [cdf_approx_m, cdf_approx_c,errorub,lb_x] = RolleLerp(Delta,h,errorlb,e
         end
 % While the current error produced in the interval is not greater than
 % error specified, continue!
-        xt = x(i):-errorlb:x(i+1); 
+        xt = linspace(x(i),x(i+1),100); 
         secderiv = zeros(1,length(xt));
         while active == 1 
 
@@ -46,12 +46,14 @@ function [cdf_approx_m, cdf_approx_c,errorub,lb_x] = RolleLerp(Delta,h,errorlb,e
             [min_sec_err ind2] = min(secderiv);
             prev_max_sec = max_sec_err;
             prev_min_sec = min_sec_err;
-            if  errorlb <= max_sec_err && max_sec_err <= errorub
+            if  abs(min_sec_err - errorub) <= 2E-6
                 active = 0;
+                ind3 = find(secderiv==errorlb);
                 max_sec_err_ar(i) = max_sec_err;
+                x(i+1) = xt(ind3); 
 
             elseif sum(secderiv) ~= 0  &&...
-                    min_sec_err >= errorlb
+                    min_sec_err >= errorlb && min_sec_err < errorub
                 active = 1;
                 errorlb = secderiv(ind2+1);
                 xt = xt(ind2+1:end);
