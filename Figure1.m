@@ -14,7 +14,7 @@
 
     % Time Horizon: 
 
-        T = 50; 
+        T = 80; 
 
     % Probability of being outside the safe set: 
 
@@ -26,7 +26,7 @@
 %         x0 = [0.2;0];
 %         xtarget = linspace(0.2,0.2,T)';   
         x0 = [0.4;0];
-        xtarget = linspace(-0.4,0.2,T)'; 
+        xtarget = linspace(-0.4,-0.2,T)'; 
     %% Bounds on the safe set
     h = [-1 0; 1 0;];
 %     g = linspace(0.5,0.5, T);

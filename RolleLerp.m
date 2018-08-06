@@ -57,7 +57,7 @@ function [cdf_approx_m, cdf_approx_c,errorub,lb_x] = RolleLerp(Delta,h,errorlb,e
         
 
     
-%      fprintf('With point %i  x(i+1) = %1.4f\n',i,x(i+1))
+     fprintf('With point %i  x(i+1) = %1.7f\n',i,x(i+1))
     if length(x) > 1
         if isnan(x) == 1
             break;
