@@ -51,8 +51,8 @@
             delT = 0.25;
       
         % Generate the PW realization of the distribution for PWLRA: 
-            maxlierror = 1E-3;
-            lbdelta = 9E-4;
+            maxlierror = 1E-2;
+            lbdelta = 1E-3;
             [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,...
             onopwl_lb_deltai] = RolleLerpClosedForm(Delta,lbdelta,...
             maxlierror);
