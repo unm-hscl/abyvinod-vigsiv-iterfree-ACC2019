@@ -26,3 +26,6 @@ codegen/
 
 # Octave session info
 octave-workspace
+
+# Don't save matlab figures
+*.fig
