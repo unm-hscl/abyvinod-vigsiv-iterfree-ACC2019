@@ -15,7 +15,7 @@ else
     
 % Generate bounds: 
     hbig = kron(eye(T),h);
-    gbig = kron(g,[1,1])';
+    gbig = kron(gb,[1,1])';
 
 % Ono's converge alpha value
     alpha_on_iter = @(n) 0.7 * (0.98)^n;

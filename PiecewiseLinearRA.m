@@ -17,7 +17,7 @@ else
 
 % Generate bounds: 
     hbig = kron(eye(T),h);
-    gbig = kron(g,[1,1])';
+    gbig = kron(gb,[1,1])';
 
 
     %% Compute M --- the number of polytopic halfspaces to worry about
@@ -34,22 +34,20 @@ else
         variable onopwl_mean_X(length(mean_X_sans_input), 1);
         variable onopwl_deltai(onopwl_n_lin_const, 1);
         variable onopwl_norminvover(onopwl_n_lin_const, 1);
-%         minimize (input_state_ratio*sum(abs(onopwl_U_vector))/(ulim*T) + sum(abs(onopwl_mean_X(1:2:end)-xtarget))/(2*g(1)*T));
-%         minimize (sum(abs(onopwl_mean_X(1:2:end)-xtarget))/no_of_position_timesteps);
-%         minimize (sum(abs(onopwl_mean_X(1:2:end)-xtarget)));
+
         minimize (trace(cov_X_sans_input(1:2:end,1:2:end)) + (xtarget-onopwl_mean_X(1:2:end))'*(xtarget-onopwl_mean_X(1:2:end)))
         subject to
             onopwl_mean_X == Ad*x0+  Bd * onopwl_U_vector;
             abs(onopwl_U_vector) <= ulim;
             for onopwl_deltai_indx=1:onopwl_n_lin_const
                 onopwl_norminvover(onopwl_deltai_indx) >=...
-                    onopwl_invcdf_approx_m.*...
-                    onopwl_deltai(onopwl_deltai_indx) +...
-                    onopwl_invcdf_approx_c; 
+                   -PWA_overapprox_m.*...
+                    onopwl_deltai(onopwl_deltai_indx) -...
+                    PWA_overapprox_c; 
             end
             hbig*onopwl_mean_X + sigma_vector.*...
                 onopwl_norminvover <= gbig;
-            onopwl_deltai >= onopwl_lb_deltai; 
+            onopwl_deltai >= lower_bound; 
             onopwl_deltai <= 0.5;
             sum(onopwl_deltai) <= Delta;
      t1 = toc(tstart);

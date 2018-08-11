@@ -41,7 +41,7 @@
         % Bounds on the safe set (Non-time dependent vars): 
 
             h = [-1 0; 1 0;];
-            gdes = [0.2 0.45];
+            gdes = [0.2 0.5];
         % Maximum/minimum bound on input: 
 
             ulim = 1; 
@@ -51,11 +51,16 @@
             delT = 0.25;
       
         % Generate the PW realization of the distribution for PWLRA: 
-            maxlierror = 1E-3;
-            lbdelta = 5E-4;
-            [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,...
-            onopwl_lb_deltai] = RolleLerpClosedForm(Delta,lbdelta,...
-            maxlierror);
+            maxlierror=1e-2;
+            g = @(z) sqrt(2)* erfinv(2*(1 - z) -1 );
+            fun_monotone = 'mono-inc';
+            lower_bound = 1E-5;
+            upper_bound = Delta; 
+            function_handle = @(z) -g(z);
+
+            [PWA_overapprox_m, PWA_overapprox_c]...
+                = getPWAOverAndUnderApprox(lower_bound,upper_bound,...
+                maxlierror,function_handle,fun_monotone);
 
         % Cost ratios b/n input and state --- scalarization term:
             input_state_ratio = 0.0001;
@@ -74,7 +79,7 @@ for i = 1:length(T_array)
 
         % Bounds on the safe set (Non-time dependent vars):
 
-            g = linspace(gdes(1),gdes(2), T);
+            gb = linspace(gdes(1),gdes(2), T);
 
 
      %% Prepare system matrices: 
@@ -117,7 +122,7 @@ for i = 1:length(T_array)
         n_mcarlo_sims = 1e5;
         % FIXME: Shouldn't be redefining this again!
         hbig = kron(eye(T),h);
-        gbig = kron(g,[1,1])';    
+        gbig = kron(gb,[1,1])';    
         xtarget_mcarlo = repmat(xtarget, 1, n_mcarlo_sims);
         collection_of_input_vectors = [ono_opt_input_vector,...
             onopwl_opt_input_vector];
@@ -176,8 +181,8 @@ end
 
     %% Plotting trajectories of each method for a specified Time Horizon: 
         hbig = kron(eye(T_toplot),h);
-        g = linspace(gdes(1),gdes(2), T_toplot);
-        gbig = kron(g,[1,1])';  
+        gb = linspace(gdes(1),gdes(2), T_toplot);
+        gbig = kron(gb,[1,1])';  
         xtarget = linspace(xtar(1),xtar(2),T_toplot/3)';
         xtarget = [xtarget; linspace(xtar(3),xtar(4),T_toplot/3)']; 
         xtarget = [xtarget; linspace(xtar(5),xtar(6),T_toplot/3)']; 
@@ -205,7 +210,7 @@ end
             sprintf('Ono2008 IRA Method (Cost: %1.3f)',...
             Ono08OPT(find(T_array==T_toplot))),...
             sprintf('Piecewise linear approach (Cost: %1.3f)',...
-            PWLRAOPT(find(T_array==T_toplot)))});
+            PWLRAOPT(find(T_array==T_toplot)))},'Location','best');
         box on;
         set(gca,'FontSize',plot_fontSize)
 

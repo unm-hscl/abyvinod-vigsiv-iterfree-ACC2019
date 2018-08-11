@@ -29,12 +29,12 @@
         % Initial conditions:   
 
             x0 = [0.4;0];
-            xtarget = linspace(-0.4,-0.2,T)'; 
+            xtarget = linspace(-0.4,0.2,T)'; 
             
         % Bounds on the safe set: 
         
             h = [-1 0; 1 0;];
-            g = linspace(0.5,0.2, T);
+            gb = linspace(0.5,0.2, T);
             
         % Disturbance parameters: 
 
@@ -52,7 +52,7 @@
 
         % Number of particles for BlackmorePCApproach: 
 
-            N = 100;
+            N = 10;
         
 
      %% Prepare system matrices: 
@@ -71,11 +71,16 @@
                 getHmatMeanCovForXSansInput(sys, x0, T);  
             
         % Generate the PW realization of the distribution for PWLRA: 
-            maxlierror = 1E-3;
-            lbdelta = 1E-4;
-            [onopwl_invcdf_approx_m, onopwl_invcdf_approx_c,...
-            onopwl_lb_deltai] = RolleLerpClosedForm(Delta,lbdelta,...
-            maxlierror);
+            maxlierror=1e-2;
+            g = @(z) sqrt(2)* erfinv(2*(1 - z) -1 );
+            fun_monotone = 'mono-inc';
+            lower_bound = 1E-5;
+            upper_bound = Delta; 
+            function_handle = @(z) -g(z);
+
+            [PWA_overapprox_m, PWA_overapprox_c]...
+                = getPWAOverAndUnderApprox(lower_bound,upper_bound,...
+                maxlierror,function_handle,fun_monotone);
         
         % Cost ratios b/n input and state --- scalarization term:
             input_state_ratio = 0.0001;
@@ -98,9 +103,9 @@
 
     %% Plotting trajectories of each method: 
 
-        plot_markersize = 10;
-        plot_fontSize = 10;
-        figure(1)
+        plot_markersize = 9;
+        plot_fontSize = 9;
+        fig1 = figure(1);
         clf
         hold on
         polyvertex =[1:T+1,1:T+1;[-gbig(1),-gbig(1:2:end)'],...
@@ -115,28 +120,35 @@
         h4 = plot(2:(T+1),blackmore_opt_mean_X(1:2:end,1),...
             'ks','MarkerSize',plot_markersize);
         h5 = plot(2:(T+1),onopwl_opt_mean_X(1:2:end),'md',...
-            'LineWidth',1,'MarkerSize',plot_markersize);    
-        xlabel('time')
-        ylabel('x')
-        title('Trajectory')
+            'LineWidth',1,'MarkerSize',plot_markersize);
+        
+        set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+        set(groot, 'defaultLegendInterpreter','latex');
+        set(groot, 'defaulttextInterpreter','latex');
+        
+        xlabel('\textbf{Time (seconds)}')
+        ylabel('\textbf{Position (x)}')
+        title('\textbf{Trajectory}')
+        set(gca,'FontSize',plot_fontSize)
         legend([h1 h11 h2 h3 h4 h5],{'Safe Set',...
             'Initial state','Target Trajectory',...
             sprintf('Ono2008 IRA Method (Cost: %1.3f)',...
-            ono_opt_val),sprintf('Blackmore11 PC Method (Cost: %1.3f)',...
-            blackmore_opt_val),...
+            ono_opt_val),sprintf('Blackmore11 PC Method, %i Particles (Cost: %1.3f)',...
+            N,blackmore_opt_val),...
             sprintf('Piecewise linear approach (Cost: %1.3f)',...
-            onopwl_opt_val)});
+            onopwl_opt_val)},'Location','SouthOutside','FontSize',9);
         box on;
-        set(gca,'FontSize',plot_fontSize)
-
-        figure(1);
+        set(fig1,'PaperUnits','centimeters');
+        set(fig1,'PaperPosition',[0 0 8.8 8.8]);
+        fig1 = tightfig(fig1);
+        hgexport(fig1,'Figure1',hgexport('factorystyle'),'Format', 'eps')
     
 
     %% Monte-Carlo simulation using SReachTools
         n_mcarlo_sims = 1e5;
         % FIXME: Shouldn't be redefining this again!
         hbig = kron(eye(T),h);
-        gbig = kron(g,[1,1])';    
+        gbig = kron(gb,[1,1])';    
         xtarget_mcarlo = repmat(xtarget, 1, n_mcarlo_sims);
         collection_of_input_vectors = [blackmore_opt_input_vector, ono_opt_input_vector, onopwl_opt_input_vector];
         collection_of_costs = [blackmore_opt_val, ono_opt_val, onopwl_opt_val];

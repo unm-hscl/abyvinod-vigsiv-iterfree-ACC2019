@@ -56,8 +56,8 @@
           abs(U_vector) <= ulim;
 
           for i = 1:N
-              kron(htemp,h(1))*xBl(:,i) - g(:) <= large_constant*(d(i));
-              kron(htemp,h(2))*xBl(:,i) - g(:) <= large_constant*(d(i));
+              kron(htemp,h(1))*xBl(:,i) - gb(:) <= large_constant*(d(i));
+              kron(htemp,h(2))*xBl(:,i) - gb(:) <= large_constant*(d(i));
           end
           1/N*sum(d)<=Delta;
 
