@@ -1,12 +1,14 @@
 clc, clear, close
 clear;close all;
 
-Delta = 0.2;
-K=6;
+underlineDelta = 1e-5;
+Delta = 0.5;
+K=5;
+DeltaMax = 0.7;
 
 no_of_test_points = 1000;
 legend_str = {'Bounds on approx. error','$\ell_f^+(x) - f(x)$','$f(x) - \ell_f^-(x)$'};
-title_str2 = 'PWA approximation quality';
+title_str2 = '';%'PWA approximation quality of';
 errorboundMarkerSize = 10;
 errorMarkerSize = 5;
 approxMarkerSize = 5;
@@ -15,7 +17,7 @@ approxMarkerSize = 5;
 maxlierror=1e-2;
 g = @(z) sqrt(2)* erfinv(2*(1 - z) -1 );
 fun_monotone = 'mono-inc';
-lower_bound = 1e-5;
+lower_bound = underlineDelta;
 upper_bound = Delta; 
 function_handle = @(z) -g(z);
 
@@ -26,12 +28,14 @@ tic
 [PWA_overapprox_m, PWA_overapprox_c, PWA_underapprox_m, PWA_underapprox_c] = getPWAOverAndUnderApprox(lower_bound,upper_bound,maxlierror,function_handle,fun_monotone);
 toc
 % Added a negative sign since function_handle is the negation of g(z)
+% Also, because of the image across x-axis due to negation, the definitions
+% of approximations get flipped
 if length(PWA_overapprox_m) > 1
     y_iter_underapprox  = -min(PWA_overapprox_m' *x_iter + PWA_overapprox_c');
     y_iter_overapprox = -min(PWA_underapprox_m'*x_iter + PWA_underapprox_c');
 else
-    y_iter_overapprox  = -(PWA_overapprox_m' *x_iter + PWA_overapprox_c');
-    y_iter_underapprox = -(PWA_underapprox_m'*x_iter + PWA_underapprox_c');
+    y_iter_underapprox  = -(PWA_overapprox_m' *x_iter + PWA_overapprox_c');
+    y_iter_overapprox = -(PWA_underapprox_m'*x_iter + PWA_underapprox_c');
 end    
 err_overapprox=y_iter_overapprox-y_iter_true;
 err_underapprox=y_iter_true-y_iter_underapprox;
@@ -49,7 +53,7 @@ plot(x_iter,y_iter_underapprox,'gd-','MarkerSize',approxMarkerSize);
 xlim([x_iter(1),x_iter(end)]);  
 xlabel('$x$','interpreter','latex');
 ylabel('$f(x)$','interpreter','latex');
-title('Approximation of $f(x)=-\Phi^{-1}(1-x)$','interpreter','latex');
+title('Approximation of $f(x)=\Phi^{-1}(1-x)$','interpreter','latex');
 figure(2)
 clf
 subplot(3,1,1);
@@ -65,7 +69,7 @@ ylabel('Error');
 % leg=legend([h1 h3 h4],legend_str);
 % set(leg,'interpreter','latex');
 % title(strcat(title_str2,' of $f(x)=-\Phi^{-1}(1-x)$'),'interpreter','latex');
-title(sprintf('%s of $f(x)=-\\Phi^{-1}(1-x)$ $x\\in[%1.2f,%1.2f]$, $\\eta=%1.2f$  with %d inequalities',title_str2,lower_bound, upper_bound, maxlierror, length(PWA_overapprox_m)),'interpreter','latex');
+title(sprintf('%s $f(x)=\\Phi^{-1}(1-x)$ $x\\in[\\underline{\\delta},\\Delta]$, $\\underline{\\delta}=%1.1e$, $\\Delta=%1.2f$, $\\eta=%1.2f$  with %d inequalities',title_str2, underlineDelta, Delta, maxlierror, length(PWA_overapprox_m)),'interpreter','latex');
 fprintf(['Min error: %1.4e | Max error: %1.4e | No. of ineq: %d\n'], min(err_overapprox), max(err_overapprox), length(PWA_overapprox_m));
 fprintf(['Min error: %1.4e | Max error: %1.4e | No. of ineq: %d\n'], min(err_underapprox), max(err_underapprox), length(PWA_underapprox_m));
 
@@ -74,7 +78,7 @@ maxlierror=1e-2;
 logphi = @(z) log(normcdf(z));
 fun_monotone = 'mono-inc';
 lower_bound = -K;
-upper_bound = K; 
+upper_bound = norminv(exp(-maxlierror)); 
 function_handle = logphi;
 
 x_iter=linspace(lower_bound,upper_bound,no_of_test_points);
@@ -121,7 +125,7 @@ xlabel('$x$','interpreter','latex');
 ylabel('Error');
 leg=legend([h1 h3 h4],legend_str);
 set(leg,'interpreter','latex','Location','EastOutside');
-title(sprintf('%s of $f(x)=\\log\\Phi(x)$ $x\\in[%1.2f,%1.2f]$, $\\eta=%1.2f$ with %d inequalities',title_str2, lower_bound, upper_bound, maxlierror, length(PWA_overapprox_m)),'interpreter','latex');
+title(sprintf('%s $f(x)=\\log\\Phi(x)$ $x\\in[-K,\\Phi^{-1}(e^{-\\eta})]$, $K=%1.2f$, $\\eta=%1.2f$ with %d inequalities',title_str2, K, maxlierror, length(PWA_overapprox_m)),'interpreter','latex');
 fprintf(['Min error: %1.4e | Max error: %1.4e | No. of ineq: %d\n'], min(err_overapprox), max(err_overapprox), length(PWA_overapprox_m));
 fprintf(['Min error: %1.4e | Max error: %1.4e | No. of ineq: %d\n'], min(err_underapprox), max(err_underapprox), length(PWA_underapprox_m));
 
@@ -129,8 +133,8 @@ fprintf(['Min error: %1.4e | Max error: %1.4e | No. of ineq: %d\n'], min(err_und
 maxlierror=1e-2;
 logOneMinusZ = @(z) log(1-z);
 fun_monotone = 'mono-dec';
-lower_bound = log(1-Delta);
-upper_bound = log(normcdf(K)); 
+lower_bound = log(1-DeltaMax);
+upper_bound = 0; 
 function_handle = logOneMinusZ;
 
 x_iter=linspace(lower_bound,upper_bound,no_of_test_points);
@@ -175,7 +179,7 @@ xlabel('$x$','interpreter','latex');
 ylabel('Error');
 % leg=legend([h1 h3 h4],legend_str);
 % set(leg,'interpreter','latex');
-title(sprintf('%s of $f(x)=\\log(1-x)$ $x\\in[%1.2f,%1.2f]$, $\\eta=%1.2f$  with %d inequalities',title_str2,lower_bound, upper_bound, maxlierror, length(PWA_overapprox_m)),'interpreter','latex');
+title(sprintf('%s $f(x)=\\log(1-x)$ $x\\in[\\log(1-\\Delta),0]$, $\\Delta=%1.2f$, $\\eta=%1.2f$  with %d inequalities',title_str2,DeltaMax, maxlierror, length(PWA_overapprox_m)),'interpreter','latex');
 fprintf(['Min error: %1.4e | Max error: %1.4e | No. of ineq: %d\n'], min(err_overapprox), max(err_overapprox), length(PWA_overapprox_m));
 fprintf(['Min error: %1.4e | Max error: %1.4e | No. of ineq: %d\n'], min(err_underapprox), max(err_underapprox), length(PWA_underapprox_m));
 

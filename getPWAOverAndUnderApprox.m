@@ -34,7 +34,7 @@ function [PWA_overapprox_m,...
         elseif strcmpi(funtype,'mono-dec')
             g_maxerror=subs(g2diff,x+h)*h^2 + 8*eta;
             g_maxerror_at_j = subs(g_maxerror,x,knots_underapprox(j));
-            g_maxerror_at_j_mf = matlabFunction(g_maxerror_at_j);
+            g_maxerror_at_j_mf = @(z) double(subs(g_maxerror_at_j,z));
             % Set up the search interval to not exceed ubdelta
             search_interval = [search_interval_min  min(search_interval_max,ub-knots_underapprox(j))];
             % Solve for h
@@ -82,7 +82,9 @@ function [PWA_overapprox_m,...
         %% Construction of the overapproximation of a concave function --- first-order Taylor series
         % Set up the gradient function
         g1diff_at_j = g1diff - PWA_underapprox_m(j);
-        g1diff_at_j_mf = matlabFunction(g1diff_at_j);
+        % NOTE: Using matlabFunction fails for large -K in \log\Phi (see
+        % the end of the code)
+        g1diff_at_j_mf = @(z) double(subs(g1diff_at_j,z));
         % Set up the search interval as [x(j), x(j+1)]
         search_interval = [x_1  x_2];
         % Search for hvalgrad such that f'(x(j)+hvalgrad) = c_{j} ---
@@ -96,3 +98,12 @@ function [PWA_overapprox_m,...
         j = j+1;       
     end
 end
+% syms z;
+% logphi1diff = diff(log(normcdf(z)),1); 
+% logphi1diff_mf = matlabFunction(logphi1diff); 
+% figure();
+% subplot(2,1,1);
+% plot(-20:1e-2:10,logphi1diff_mf(-20:1e-2:10));
+% subplot(2,1,2);
+% plot(-20:1e-2:10,double(subs(logphi1diff,-20:1e-2:10)))
+        
