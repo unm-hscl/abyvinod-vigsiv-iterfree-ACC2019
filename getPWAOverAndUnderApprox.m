@@ -1,14 +1,14 @@
-function [cdf_overapprox_m,...
-          cdf_overapprox_c,...
-          cdf_underapprox_m,...
-          cdf_underapprox_c] = getPWLOverAndUnderApprox(lbdelta,ubdelta,eta,g_matlabfun,funtype)
+function [PWA_overapprox_m,...
+          PWA_overapprox_c,...
+          PWA_underapprox_m,...
+          PWA_underapprox_c] = getPWAOverAndUnderApprox(lb,ub,eta,g_matlabfun,funtype)
     warning('getPWLOverAndUnderApprox does not check for monotonicity and concavity claims.');
 
     %% Initialization
-    knots_underapprox(1) = lbdelta;
+    knots_underapprox(1) = lb;
     j = 1;
     search_interval_min = 0;
-    search_interval_max = ubdelta - lbdelta;
+    search_interval_max = ub - lb;
     fzero_options = optimset('Display','off'); % show iterations
                 
     %% Symbolic function definitions
@@ -26,7 +26,7 @@ function [cdf_overapprox_m,...
     % Due to concavity of g, the error becomes more negative for larger h
     
     % Iterate till we reach the end
-    while knots_underapprox(j)< ubdelta
+    while knots_underapprox(j)< ub
 
         if strcmpi(funtype,'mono-inc')
             hval = sqrt(-8*eta/double(subs(g2diff,x,knots_underapprox(j))));
@@ -36,16 +36,16 @@ function [cdf_overapprox_m,...
             g_maxerror_at_j = subs(g_maxerror,x,knots_underapprox(j));
             g_maxerror_at_j_mf = matlabFunction(g_maxerror_at_j);
             % Set up the search interval to not exceed ubdelta
-            search_interval = [search_interval_min  min(search_interval_max,ubdelta-knots_underapprox(j))];
+            search_interval = [search_interval_min  min(search_interval_max,ub-knots_underapprox(j))];
             % Solve for h
             try
                 hval = fzero(g_maxerror_at_j_mf,search_interval,fzero_options);
-                knots_underapprox(j+1) = min(knots_underapprox(j) + hval,ubdelta);
+                knots_underapprox(j+1) = min(knots_underapprox(j) + hval,ub);
             catch
                 % If errored, then the search interval doesn't see a sign flip
                 % => we have reached the end
-                hval = ubdelta - knots_underapprox(j);
-                knots_underapprox(j+1) = ubdelta;
+%                 hval = ub - knots_underapprox(j);
+                knots_underapprox(j+1) = ub;
             end
 %             fprintf('%2d. Searched in [%1.4e,%1.4e] to get %1.4e\n',j, knots_underapprox(j)+search_interval,knots_underapprox(j+1));
         else
@@ -76,12 +76,12 @@ function [cdf_overapprox_m,...
         x_2 = knots_underapprox(j+1);
         x_1 = knots_underapprox(j);
         % Lagrange linear interpolation
-        cdf_underapprox_m(j) = (y_2 - y_1)/(x_2 - x_1);
-        cdf_underapprox_c(j) = y_1 - cdf_underapprox_m(j) * x_1;
+        PWA_underapprox_m(j) = (y_2 - y_1)/(x_2 - x_1);
+        PWA_underapprox_c(j) = y_1 - PWA_underapprox_m(j) * x_1;
         
         %% Construction of the overapproximation of a concave function --- first-order Taylor series
         % Set up the gradient function
-        g1diff_at_j = g1diff - cdf_underapprox_m(j);
+        g1diff_at_j = g1diff - PWA_underapprox_m(j);
         g1diff_at_j_mf = matlabFunction(g1diff_at_j);
         % Set up the search interval as [x(j), x(j+1)]
         search_interval = [x_1  x_2];
@@ -89,8 +89,8 @@ function [cdf_overapprox_m,...
         % existence guaranteed by mean value theorem
         [x_grad_match] = fzero(g1diff_at_j_mf,search_interval,fzero_options);
         %cdf_underapprox_m(j) is the same as double(subs(g1diff,x_grad_match));
-        cdf_overapprox_m(j) = cdf_underapprox_m(j);
-        cdf_overapprox_c(j) = double(subs(g,x_grad_match)) - cdf_overapprox_m(j) * x_grad_match;        
+        PWA_overapprox_m(j) = PWA_underapprox_m(j);
+        PWA_overapprox_c(j) = double(subs(g,x_grad_match)) - PWA_overapprox_m(j) * x_grad_match;        
         
         %% Increment j
         j = j+1;       
