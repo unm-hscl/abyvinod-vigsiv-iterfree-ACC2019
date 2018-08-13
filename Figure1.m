@@ -1,6 +1,7 @@
-%% abyvnod-vigsiv-iterfree-ACC2019
+%% abyvnod-vigsiv-iterfree-ACC2019: Figure 1
     % This code runs comparisons of OnoCDC08, PWLRealizationOno, and
-    % BlackmoreTRo11 for a single tracjetory and compares how they fair
+    % BlackmoreTRo11 for a single tracjetory of a double integrator with a 
+    % window closing in time and compares how the methods fair.
     % computationally. 
     % REQUIRED DEPENDENCIES: - SReachTools 
     %                        - MATLAB symbolic toolbox

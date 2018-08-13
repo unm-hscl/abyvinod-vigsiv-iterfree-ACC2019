@@ -1,4 +1,4 @@
-%% PiecewiseAffine Code code
+%% PiecewiseAffine code for CWH
 % Coder: Abraham Vinod and Vignesh Sivaramakrishnan
 
 disp('---------Piecewise-linear-----------')
@@ -13,11 +13,9 @@ disp(' ')
 if Delta>0.5
     warning('Skipping piecewise linear approximation (Ono''s formulation since Delta is not <0.5');
 else   
-
-
-% Generate bounds: 
-    hbig = kron(eye(T),h);
-    gbig = kron(gb,[1,1])';
+    
+    hbig = h;
+    gbig = gb;
 
 
     %% Compute M --- the number of polytopic halfspaces to worry about
@@ -35,7 +33,8 @@ else
         variable onopwl_deltai(onopwl_n_lin_const, 1);
         variable onopwl_norminvover(onopwl_n_lin_const, 1);
 
-        minimize (trace(cov_X_sans_input(1:2:end,1:2:end)) + (xtarget-onopwl_mean_X(1:2:end))'*(xtarget-onopwl_mean_X(1:2:end)))
+        minimize (trace(cov_X_sans_input) + (xtarget-onopwl_mean_X)'*(xtarget-onopwl_mean_X))
+%         minimize (sum(onopwl_deltai))
         subject to
             onopwl_mean_X == Ad*x0+  Bd * onopwl_U_vector;
             abs(onopwl_U_vector) <= ulim;

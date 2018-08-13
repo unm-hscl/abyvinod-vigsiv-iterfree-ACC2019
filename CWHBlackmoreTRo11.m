@@ -9,27 +9,17 @@
     
     large_constant = 5000;
 % Generate the cov_matrix for optimization problem given covariance.
-    cov_mat = kron(eye(T+1),cov_mat_diag); 
+    cov_mat = kron(eye(T+1),covariance_disturbance); 
     
 % Vectorize the target trajectory for the optimization problem. 
     xtargetbig = repmat(xtarget,1,N);
 
 % Randomly generate the disturbance vector from the standard normal.
 
-    mean_GdTimesW = repmat(mean_w,T,N);
+    mean_GdTimesW = repmat(mean_disturbance,T,N);
     
     GdTimesW = mvnrnd(mean_GdTimesW', cov_X_sans_input)';
-    
-% Generate bounds: 
-    htemp = zeros(size(Ad,2)*T);
-    
-    for k = 1:(size(Ad,2)*T)
-        htemp(k,size(Ad,2)*(k-1)+1:size(Ad,2)*k) = [1 0];   
-    end
-    htemp = htemp(1:(size(Ad,2)*T)/2,1:(size(Ad,2)*T));
-    
-    
-    input_state_ratio = 0.0001;
+  
     
 
 %% Run optimization problem for an optimal control policy
@@ -46,7 +36,7 @@
 
         %minimize (input_state_ratio*sum(abs(U_vector))/(ulim*T) +...
             %sum(sum(abs(xBl(1:2:end,1:end)-xtargetbig)))/(2*g(1)*T)/N);
-        minimize (sum(sum((xBl(1:2:end,:)-xtargetbig).^2))/N);
+        minimize (sum(sum((xBl-xtargetbig).^2))/N);
 
         subject to
           mean_X == Ad*x0+ Bd*U_vector;
@@ -56,8 +46,7 @@
           abs(U_vector) <= ulim;
 
           for i = 1:N
-              kron(htemp,h(1))*xBl(:,i) - gb(:) <= large_constant*(d(i));
-              kron(htemp,h(2))*xBl(:,i) - gb(:) <= large_constant*(d(i));
+              h*xBl(:,i) - gb(:) <= large_constant*(d(i));
           end
           1/N*sum(d)<=Delta;
 
