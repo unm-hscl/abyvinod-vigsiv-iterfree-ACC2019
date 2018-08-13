@@ -157,10 +157,7 @@
     
 
     %% Monte-Carlo simulation using SReachTools
-        n_mcarlo_sims = 1e5;
-        % FIXME: Shouldn't be redefining this again!
-        hbig = kron(eye(T),h);
-        gbig = kron(gb,[1,1])';    
+        n_mcarlo_sims = 1e5;  
         xtarget_mcarlo = repmat(xtarget, 1, n_mcarlo_sims);
         collection_of_input_vectors = [blackmore_opt_input_vector, ono_opt_input_vector, onopwl_opt_input_vector];
         collection_of_costs = [blackmore_opt_val, ono_opt_val, onopwl_opt_val];
@@ -183,9 +180,9 @@
                     T,...
                     U_vector);
         % all does it column-wise
-        particlewise_result = all(hbig*X_mcarlo_sans_init_state <= gbig);
+        particlewise_result = all(h*X_mcarlo_sans_init_state <= gb);
         prob_estim = sum(particlewise_result)/n_mcarlo_sims;
-        cost_estim = mean(sum((X_mcarlo_sans_init_state(1:2:end,:)-xtarget_mcarlo).^2));    
+        cost_estim = mean(sum((X_mcarlo_sans_init_state-xtarget_mcarlo).^2));    
         relative_abserror_in_cost = abs(cost_estim - true_cost)/true_cost;
         if prob_estim >= 1-Delta && relative_abserror_in_cost <= max_rel_abserror
             fprintf('PASSD: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
