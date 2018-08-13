@@ -72,17 +72,35 @@
                 getHmatMeanCovForXSansInput(sys, x0, T);  
             
         % Generate the PW realization of the distribution for PWLRA: 
-            maxlierror=1e-2;
-            g = @(z) sqrt(2)* erfinv(2*(1 - z) -1 );
-            fun_monotone = 'mono-inc';
-            lower_bound = 1E-5;
-            upper_bound = Delta; 
-            function_handle = @(z) -g(z);
+        maxlierror=1e-2;
+        g = @(z) sqrt(2)* erfinv(2*(1 - z) -1 );
+        fun_monotone = 'mono-inc';
+        lower_bound = 1E-5;
+        upper_bound = Delta; 
+        function_handle = @(z) -g(z);
 
-            [PWA_overapprox_m, PWA_overapprox_c]...
-                = getPWAOverAndUnderApprox(lower_bound,upper_bound,...
-                maxlierror,function_handle,fun_monotone);
-        
+        [PWA_overapprox_m, PWA_overapprox_c]...
+            = getPWAOverAndUnderApprox(lower_bound,upper_bound,...
+            maxlierror,function_handle,fun_monotone);
+
+        % Compute underapproximation for log(Phi(x))
+%         maxlierror=1e-2;
+%         logphi = @(z) log(normcdf(z));
+%         fun_monotone = 'mono-inc';
+%         lower_bound = -K;
+%         upper_bound = K; 
+%         function_handle = logphi;
+%         [~, ~, PWA_lognormcdf_underapprox_m, PWA_lognormcdf_underapprox_c] = getPWAOverAndUnderApprox(lower_bound,upper_bound,maxlierror,function_handle,fun_monotone);
+
+        % Compute underapproximation for log(1-x)
+%        maxlierror=1e-2;
+%        logOneMinusZ = @(z) log(1-z);
+%        fun_monotone = 'mono-dec';
+%        lower_bound = log(1-Delta);
+%        upper_bound = log(normcdf(K)); 
+%        function_handle = logOneMinusZ;
+%        [PWA_logOneMinus_overapprox_m, PWA_logOneMinus_overapprox_c,~,~] = getPWAOverAndUnderApprox(lower_bound,upper_bound,maxlierror,function_handle,fun_monotone);
+
         % Cost ratios b/n input and state --- scalarization term:
             input_state_ratio = 0.0001;
 

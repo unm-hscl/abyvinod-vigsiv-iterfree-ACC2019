@@ -48,8 +48,7 @@ else
             hbig*onopwl_mean_X + sigma_vector.*...
                 onopwl_norminvover <= gbig;
             onopwl_deltai >= lower_bound; 
-            onopwl_deltai <= 0.5;
-            sum(onopwl_deltai) <= Delta;
+            onopwl_deltai <= Delta;
      t1 = toc(tstart);
      cvx_end;
      t2 = toc(tstart);
