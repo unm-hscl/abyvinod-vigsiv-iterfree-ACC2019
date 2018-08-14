@@ -113,8 +113,8 @@
 
     %% Plotting trajectories of each method: 
 
-        plot_markersize = 9;
-        plot_fontSize = 9;
+        plot_markersize = 16;
+        plot_fontSize = 14;
         fig3 = figure(1);
         clf
         hold on
@@ -123,21 +123,21 @@
         h3 = scatter(x0(1),x0(2),10*plot_markersize,'go','filled');
         h4 = scatter([x0(1); ono_opt_mean_X(1:4:end)],...
                     [x0(2); ono_opt_mean_X(2:4:end)],...
-                    30, 'bx');
+                    10*plot_markersize, 'bx');
         h5 = scatter([x0(1); onopwl_opt_mean_X(1:4:end)],...
                     [x0(2); onopwl_opt_mean_X(2:4:end)],...
-                    30, 'md');
+                    10*plot_markersize, 'md');
         h6 = scatter([x0(1); blackmore_opt_mean_X(1:4:end)],...
                     [x0(2); blackmore_opt_mean_X(2:4:end)],...
-                    30, 'ks');
+                    10*plot_markersize, 'ks');
 
         
         set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
         set(groot, 'defaultLegendInterpreter','latex');
         set(groot, 'defaulttextInterpreter','latex');
         
-        xlabel('\textbf{Position (y)}')
-        ylabel('\textbf{Position (x)}')
+        xlabel('\textbf{Position ($z_1$)}')
+        ylabel('\textbf{Position ($z_2$)}')
         title('\textbf{Trajectory}')
         set(gca,'FontSize',plot_fontSize)
         legend([h1 h2 h3 h4 h5 h6],{'Safe Set',...
@@ -146,13 +146,14 @@
             ono_opt_val), sprintf('Piecewise linear approach (Cost: %1.3f)',...
             onopwl_opt_val),...
             sprintf('Blackmore11 PC Method, %i Particles (Cost: %1.3f)',...
-            N,blackmore_opt_val)},'Location','SouthOutside','FontSize',9);
+            N,blackmore_opt_val)},'Location','SouthOutside','FontSize',plot_fontSize);
         box on;
-        set(fig3,'PaperUnits','centimeters');
-        set(fig3,'PaperPosition',[0 0 8.8 8.8]);
+%         set(fig3,'PaperUnits','centimeters');
+%         set(fig3,'PaperPosition',[0 0 8.8 8.8]);
+        set(gca,'FontSize',plot_fontSize)
         grid on
         axis tight
-        fig3 = tightfig(fig3);
+%         fig3 = tightfig(fig3);
         hgexport(fig3,'Figure3',hgexport('factorystyle'),'Format', 'png')
     
 

@@ -25,7 +25,7 @@
 
         % Probability of being outside the safe set: 
 
-            Delta = 0.8;
+            Delta = 0.2;
 
         % Initial conditions:   
 
@@ -166,7 +166,7 @@
 %         set(fig1,'PaperPosition',[0 0 8.8 8.8]);
         set(gca,'FontSize',plot_fontSize)
 %         fig1 = tightfig(fig1);
-%         hgexport(fig1,'Figure1',hgexport('factorystyle'),'Format', 'png')
+        hgexport(fig1,'Figure1',hgexport('factorystyle'),'Format', 'png')
     
 
     %% Monte-Carlo simulation using SReachTools
