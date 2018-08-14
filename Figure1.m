@@ -53,7 +53,7 @@
 
         % Number of particles for BlackmorePCApproach: 
 
-            N = 10;
+            N = 20;
         
 
      %% Prepare system matrices: 
@@ -127,7 +127,7 @@
     %% Plotting trajectories of each method: 
 
         plot_markersize = 9;
-        plot_fontSize = 9;
+        plot_fontSize = 14;
         fig1 = figure(1);
         clf
         hold on
@@ -154,7 +154,6 @@
         xlabel('\textbf{Time (seconds)}')
         ylabel('\textbf{Position (x)}')
         title('\textbf{Trajectory}')
-        set(gca,'FontSize',plot_fontSize)
         legend([h1 h11 h2 h3 h4 h5 h6],{'Safe Set',...
             'Initial state','Target Trajectory',...
             sprintf('Ono2008 IRA Method (Cost: %1.3f)',...
@@ -163,12 +162,13 @@
             sprintf('Piecewise affine approach - cvx (Cost: %1.3f)',...
             onopwl_opt_val),...
             sprintf('Piecewise linear approach - milp (Cost: %1.3f)',...
-            pwa_opt_val)},'Location','SouthOutside','FontSize',9);
+            pwa_opt_val)},'Location','SouthOutside','FontSize',plot_fontSize);
         box on;
-        set(fig1,'PaperUnits','centimeters');
-        set(fig1,'PaperPosition',[0 0 8.8 8.8]);
-        fig1 = tightfig(fig1);
-        hgexport(fig1,'Figure1',hgexport('factorystyle'),'Format', 'eps')
+%         set(fig1,'PaperUnits','centimeters');
+%         set(fig1,'PaperPosition',[0 0 8.8 8.8]);
+        set(gca,'FontSize',plot_fontSize)
+%         fig1 = tightfig(fig1);
+        hgexport(fig1,'Figure1',hgexport('factorystyle'),'Format', 'png')
     
 
     %% Monte-Carlo simulation using SReachTools
