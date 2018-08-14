@@ -134,7 +134,7 @@ maxlierror=1e-2;
 logOneMinusZ = @(z) log(1-z);
 fun_monotone = 'mono-dec';
 lower_bound = log(1-DeltaMax);
-upper_bound = 0; 
+upper_bound = -maxlierror; 
 function_handle = logOneMinusZ;
 
 x_iter=linspace(lower_bound,upper_bound,no_of_test_points);
