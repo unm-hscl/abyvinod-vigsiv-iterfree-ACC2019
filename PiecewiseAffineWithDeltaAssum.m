@@ -42,11 +42,12 @@ else
             for onopwl_deltai_indx=1:onopwl_n_lin_const
                 % Implements piecewise maximization
                 onopwl_norminvover(onopwl_deltai_indx) >=...
-                   - (PWA_overapprox_phiinv_m.* onopwl_deltai(onopwl_deltai_indx) + PWA_overapprox_phiinv_c);
+                   PWA_phiinv_overapprox_m.* onopwl_deltai(onopwl_deltai_indx) + PWA_phiinv_overapprox_c;
             end
             hbig*onopwl_mean_X + sigma_vector.* onopwl_norminvover <= gbig;
             onopwl_deltai >= lower_bound_phiinv; 
             onopwl_deltai <= upper_bound_phiinv; 
+            sum(onopwl_deltai) <= Delta;
      t1 = toc(tstart);
      cvx_end;
      t2 = toc(tstart);

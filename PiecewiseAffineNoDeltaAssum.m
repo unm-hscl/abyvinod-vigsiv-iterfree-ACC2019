@@ -5,9 +5,6 @@ disp('---------Piecewise-Affine-No-Delta-----------')
 disp(' ')
 
 %% House keeping
-pwa_opt_val = nan;
-pwa_opt_mean_X = nan(length(mean_X_sans_input), 1);
-pwa_opt_input_vector = nan(size(Bd,2),1);
 myeps_MILP = 1e-10;
 
 % Generate bounds: 
@@ -28,7 +25,6 @@ Mub = PWA_log1minusx_overapprox_c - log( 1 - Delta);
 %% Solve the feasibility problem
 PWA_n_log1minusx = length(PWA_log1minusx_overapprox_m);
 tstart = tic;
-cvx_precision low
 cvx_begin quiet
     variable pwa_U_vector(size(Bd,2),1);
     variable pwa_mean_X(length(mean_X_sans_input), 1);
@@ -64,8 +60,6 @@ cvx_begin quiet
 
         % (17i) --- sum works columnwise
         sum(pwa_bin_log1minusx,1) >= 1;
-
-%             PWA_log1minusx_overapprox_m.* pwa_deltai + repmat(PWA_log1minusx_overapprox_c, pwa_n_lin_const,1) <= pwa_slackvar;
  t1 = toc(tstart);
  cvx_end;
  t2 = toc(tstart);
@@ -78,7 +72,10 @@ if strcmpi(cvx_status, 'Solved')
     pwa_opt_mean_X = pwa_mean_X;
     pwa_opt_val = cvx_optval;
 else
-    error('Piecewise MILP failed');
+    pwa_opt_val = nan;
+    pwa_opt_mean_X = nan(length(mean_X_sans_input), 1);
+    pwa_opt_input_vector = nan(size(Bd,2),1);
+    warning('Piecewise MILP failed');
 end
 
 disp('------------------------------------')

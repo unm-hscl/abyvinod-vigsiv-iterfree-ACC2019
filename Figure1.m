@@ -25,7 +25,7 @@
 
         % Probability of being outside the safe set: 
 
-            Delta = 0.8;
+            Delta = 0.6;
 
         % Initial conditions:   
 
@@ -79,7 +79,9 @@
             lower_bound_phiinv = 1E-5;
             upper_bound_phiinv = Delta; 
             function_handle = @(z) -phiinv(z);
-            [PWA_overapprox_phiinv_m, PWA_overapprox_phiinv_c, ~, ~] = getPWAOverAndUnderApprox(lower_bound_phiinv,upper_bound_phiinv,maxlierror_phiinv,function_handle,fun_monotone_phiinv);
+            [~,~,PWA_negphiinv_underapprox_m,PWA_negphiinv_underapprox_c] = getPWAOverAndUnderApprox(lower_bound_phiinv,upper_bound_phiinv,maxlierror_phiinv,function_handle,fun_monotone_phiinv);
+            PWA_phiinv_overapprox_m = - PWA_negphiinv_underapprox_m;
+            PWA_phiinv_overapprox_c = - PWA_negphiinv_underapprox_c;
         end
         
         % Compute underapproximation for log(Phi(x))
@@ -196,22 +198,22 @@
                     x0,...
                     T,...
                     U_vector);
-        % all does it column-wise
-        particlewise_result = all(hbig*X_mcarlo_sans_init_state <= gbig);
-        prob_estim = sum(particlewise_result)/n_mcarlo_sims;
-        cost_estim = mean(sum((X_mcarlo_sans_init_state(1:2:end,:)-xtarget_mcarlo).^2));    
-        relative_abserror_in_cost = abs(cost_estim - true_cost)/true_cost;
-        if prob_estim >= 1-Delta && relative_abserror_in_cost <= max_rel_abserror
-            fprintf('PASSD: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
-                    method_str,... 
-                    n_mcarlo_sims,...
-                    prob_estim,...
-                    relative_abserror_in_cost);
-        else
-            fprintf('ERROR: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
-                    method_str,... 
-                    n_mcarlo_sims,...
-                    prob_estim,...
-                    relative_abserror_in_cost);
+            % all does it column-wise
+            particlewise_result = all(hbig*X_mcarlo_sans_init_state <= gbig);
+            prob_estim = sum(particlewise_result)/n_mcarlo_sims;
+            cost_estim = mean(sum((X_mcarlo_sans_init_state(1:2:end,:)-xtarget_mcarlo).^2));    
+            relative_abserror_in_cost = abs(cost_estim - true_cost)/true_cost;
+            if prob_estim >= 1-Delta && relative_abserror_in_cost <= max_rel_abserror
+                fprintf('PASSD: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
+                        method_str,... 
+                        n_mcarlo_sims,...
+                        prob_estim,...
+                        relative_abserror_in_cost);
+            else
+                fprintf('ERROR: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
+                        method_str,... 
+                        n_mcarlo_sims,...
+                        prob_estim,...
+                        relative_abserror_in_cost);
+            end
         end
-    end

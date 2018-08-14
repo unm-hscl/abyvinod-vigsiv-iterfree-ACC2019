@@ -1,5 +1,4 @@
-clc, clear, close
-clear;close all;
+clc;clear;close all;
 
 underlineDelta = 1e-5;
 Delta = 0.5;
@@ -14,7 +13,7 @@ errorMarkerSize = 5;
 approxMarkerSize = 5;
 
 %% norminv(1-delta)
-maxlierror=1e-2;
+maxlierror=1e-3;
 g = @(z) sqrt(2)* erfinv(2*(1 - z) -1 );
 fun_monotone = 'mono-inc';
 lower_bound = underlineDelta;
@@ -31,8 +30,8 @@ toc
 % Also, because of the image across x-axis due to negation, the definitions
 % of approximations get flipped
 if length(PWA_overapprox_m) > 1
-    y_iter_underapprox  = -min(PWA_overapprox_m' *x_iter + PWA_overapprox_c');
-    y_iter_overapprox = -min(PWA_underapprox_m'*x_iter + PWA_underapprox_c');
+    y_iter_underapprox  = max(-PWA_overapprox_m' *x_iter - PWA_overapprox_c');
+    y_iter_overapprox = max(-PWA_underapprox_m'*x_iter - PWA_underapprox_c');
 else
     y_iter_underapprox  = -(PWA_overapprox_m' *x_iter + PWA_overapprox_c');
     y_iter_overapprox = -(PWA_underapprox_m'*x_iter + PWA_underapprox_c');
