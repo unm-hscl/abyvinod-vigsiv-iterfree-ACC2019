@@ -7,15 +7,6 @@
 %                        - MATLAB symbolic toolbox
 %                        - MATLAB global optimization toolbox
 
-    %% Housekeeping: 
-
-        clear;
-        close all;
-        clc;
-        cvx_clear;
-        cd('SReachTools-private');
-        srtinit
-        cd('../');
 
     %% Load specifications (Ones which do not depend on the Time Horzion): 
 
@@ -186,7 +177,7 @@ end
         plot_markersize = 10;
         plot_fontSize = 10;
         figure(1)
-        clf
+        subplot(2,2,2);
         hold on
         polyvertex =[1:T_toplot+1,1:T_toplot+1;[-gbig(1),-gbig(1:2:end)'],...
             [gbig(1),gbig(1:2:end)']]'; % Note: This needs MPT to run!!
@@ -220,7 +211,7 @@ end
         plot_markersize = 10;
         plot_fontSize = 10;
         figure(2)
-        clf
+        subplot(2,2,2);
         hold on
         h5 = plot(T_array,Ono08TTS,'go','MarkerSize',...
             plot_markersize,'LineWidth',2);
