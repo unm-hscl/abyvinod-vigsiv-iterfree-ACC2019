@@ -1,7 +1,7 @@
 %% PiecewiseAffine Code code
 % Coder: Abraham Vinod and Vignesh Sivaramakrishnan
 
-disp('---------Piecewise-linear-----------')
+disp('---------Piecewise-Affine-With-Delta-----------')
 disp(' ')
 
     %% House keeping
@@ -40,16 +40,13 @@ else
             onopwl_mean_X == Ad*x0+  Bd * onopwl_U_vector;
             abs(onopwl_U_vector) <= ulim;
             for onopwl_deltai_indx=1:onopwl_n_lin_const
+                % Implements piecewise maximization
                 onopwl_norminvover(onopwl_deltai_indx) >=...
-                   -PWA_overapprox_m.*...
-                    onopwl_deltai(onopwl_deltai_indx) -...
-                    PWA_overapprox_c; 
+                   - (PWA_overapprox_phiinv_m.* onopwl_deltai(onopwl_deltai_indx) + PWA_overapprox_phiinv_c);
             end
-            hbig*onopwl_mean_X + sigma_vector.*...
-                onopwl_norminvover <= gbig;
-            onopwl_deltai >= lower_bound; 
-            onopwl_deltai <= 0.5;
-            sum(onopwl_deltai) <= Delta;
+            hbig*onopwl_mean_X + sigma_vector.* onopwl_norminvover <= gbig;
+            onopwl_deltai >= lower_bound_phiinv; 
+            onopwl_deltai <= upper_bound_phiinv; 
      t1 = toc(tstart);
      cvx_end;
      t2 = toc(tstart);
@@ -62,7 +59,7 @@ else
         onopwl_opt_mean_X = onopwl_mean_X;
         onopwl_opt_val = cvx_optval;
     else
-        error('Piecewise Ono failed');
+        error('PWA-based Ono failed');
     end
 
 disp('------------------------------------')
