@@ -25,7 +25,7 @@
 
         % Probability of being outside the safe set: 
 
-            Delta = 0.6;
+            Delta = 0.2;
 
         % Initial conditions:   
 
@@ -36,6 +36,14 @@
         
             h = [-1 0; 1 0;];
             gb = linspace(0.5,0.2, T);
+            
+        % Generate bounds for Ono and PWA: 
+            hbig = kron(eye(T),h);
+            gbig = kron(gb,[1,1])';
+            
+        % Generate bounds for Blackmore: 
+            hbig = kron(eye(T),h);
+            gbig = kron(gb,[1,1])';
             
         % Disturbance parameters: 
 
@@ -110,13 +118,16 @@
         %% with parameters above: 
 
         try
-            Ono08_IRA
+%             Ono08_IRA
         catch
             disp('Ono''s method failed');
         end
         disp(' ');
         disp(' ');
-        PiecewiseAffineWithDeltaAssum
+        [onopwl_time_to_solve,onopwl_total_time,onopwl_opt_input_vector,...
+            onopwl_opt_mean_X,onopwl_opt_val] = PiecewiseAffineWithDeltaAssum...
+            (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,...
+            PWA_phiinv_overapprox_m,PWA_phiinv_overapprox_c,lower_bound_phiinv,upper_bound_phiinv);
         disp(' ');
         disp(' ');
         PiecewiseAffineNoDeltaAssum
