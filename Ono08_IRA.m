@@ -1,7 +1,6 @@
-function [onopwl_time_to_solve,onopwl_total_time,onopwl_opt_input_vector,...
-    onopwl_opt_mean_X,onopwl_opt_val] = Ono_IRA...
-    (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,...
-    PWA_phiinv_overapprox_m,PWA_phiinv_overapprox_c,lower_bound_phiinv,upper_bound_phiinv)
+function [ono_time_to_solve,ono_total_time,ono_opt_input_vector,...
+    ono_opt_mean_X,ono_opt_val] = Ono08_IRA...
+    (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input)
 %% Ono_IRA 2008 code
 % Coder: Abraham Vinod and Vignesh Sivaramakrishnan
 
@@ -15,11 +14,9 @@ ono_opt_value_array = nan;
 
 if Delta>0.5
     warning('Skipping Ono''s formulation since Delta is not <0.5');
+    cvx_status = 'Did not solve';
 else
     
-% Generate bounds: 
-    hbig = kron(eye(T),h);
-    gbig = kron(gb,[1,1])';
 
 % Ono's converge alpha value
     alpha_on_iter = @(n) 0.7 * (0.98)^n;
@@ -156,7 +153,7 @@ ono_opt_value_array(1) = opt_value_prev;
             variable U_vector(size(Bd,2),1);
             variable mean_X(size(mean_X_sans_input,1), 1);
             % E[ e^t e] where e= (xtarget - x)
-            minimize (trace(cov_X_sans_input(1:2:end,1:2:end)) + (xtarget-mean_X(1:2:end))'*(xtarget-mean_X(1:2:end)))
+            minimize (trace(cov_X_sans_input) + (xtarget-mean_X)'*(xtarget-mean_X))
             subject to
                 mean_X == Ad*x0+ Bd*U_vector; 
                 abs(U_vector) <= ulim; 
@@ -216,19 +213,32 @@ ono_opt_value_array(1) = opt_value_prev;
         iter_count = iter_count + 1;
     end
 
-ono_opt_mean_X = mean_X;
-ono_opt_val = ono_opt_value_array(end);
-ono_opt_input_vector = U_vector; 
-ono_time_to_solve = sum(time_to_solve1)+sum(time_to_solve2);
+end   
+    if strcmpi(cvx_status, 'Solved')
+        ono_opt_input_vector = U_vector;
+        ono_opt_mean_X = mean_X;
+        ono_opt_val = ono_opt_value_array(end);
+        ono_time_to_solve = sum(time_to_solve1)+sum(time_to_solve2);
+        ono_total_time = sum(tot_time1)+sum(tot_time2);
+    else
+        ono_opt_val = nan;
+        ono_opt_mean_X = nan(length(mean_X_sans_input), 1);
+        ono_opt_input_vector = nan(size(Bd,2),1);
+        ono_time_to_solve = 0;
+        ono_total_time = 0;
+        N_active = size(Bd,2);
+        warning('Ono08 failed or has a delta > 0.5');
+    end
+    
+    
 fprintf('Done with Delta: %1.4f, N_active: %2d\n\n',...
         Delta,...
         N_active);
 
 fprintf('Total CVX Run Time: %1.4f seconds\n',...
-    sum(tot_time1)+sum(tot_time2))
+    ono_total_time)
 disp('------------------------------------')
-fprintf('Total CVX Solve Time: %1.4f seconds\n\n',sum(time_to_solve1)+sum(time_to_solve2))
-disp('------------------------------------')
-fprintf('Total Run Time: %1.4f seconds\n', sum(tot_time1)+sum(tot_time2)+sum(time_to_solve1)+sum(time_to_solve2))
-end
+fprintf('Total CVX Solve Time: %1.4f seconds\n\n',ono_time_to_solve)
 
+
+end

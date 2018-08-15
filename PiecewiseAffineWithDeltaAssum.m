@@ -16,6 +16,7 @@ function [onopwl_time_to_solve,onopwl_total_time,onopwl_opt_input_vector,...
 
     if Delta>0.5
         warning('Skipping piecewise linear approximation (Ono''s formulation since Delta is not <0.5');
+        cvx_status = 'Did not solve';
     else   
 
 
@@ -35,7 +36,7 @@ function [onopwl_time_to_solve,onopwl_total_time,onopwl_opt_input_vector,...
             variable onopwl_deltai(onopwl_n_lin_const, 1);
             variable onopwl_norminvover(onopwl_n_lin_const, 1);
 
-            minimize (trace(cov_X_sans_input(1:2:end,1:2:end)) + (xtarget-onopwl_mean_X(1:2:end))'*(xtarget-onopwl_mean_X(1:2:end)))
+            minimize (trace(cov_X_sans_input) + (xtarget-onopwl_mean_X)'*(xtarget-onopwl_mean_X))
             subject to
                 onopwl_mean_X == Ad*x0+  Bd * onopwl_U_vector;
                 abs(onopwl_U_vector) <= ulim;
@@ -51,21 +52,28 @@ function [onopwl_time_to_solve,onopwl_total_time,onopwl_opt_input_vector,...
          t1 = toc(tstart);
          cvx_end;
          t2 = toc(tstart);
-         onopwl_time_to_solve = t2 - t1;
-         onopwl_total_time = cvx_cputime;
+
 
         %% Overwrite the solutions
         if strcmpi(cvx_status, 'Solved')
             onopwl_opt_input_vector = onopwl_U_vector;
             onopwl_opt_mean_X = onopwl_mean_X;
             onopwl_opt_val = cvx_optval;
+            onopwl_time_to_solve = t2 - t1;
+            onopwl_total_time = cvx_cputime;
         else
-            error('PWA-based Ono failed');
+            onopwl_opt_val = nan;
+            onopwl_opt_mean_X = nan(length(mean_X_sans_input), 1);
+            onopwl_opt_input_vector = nan(size(Bd,2),1);
+            onopwl_time_to_solve = 0;
+            onopwl_total_time = 0;
+            warning('PWA-based Ono failed');
         end
+    end
 
     disp('------------------------------------')
     fprintf('Total CVX Solve Time: %1.4f seconds\n\n',onopwl_time_to_solve)
     disp('------------------------------------')
     fprintf('Total Run Time: %1.4f seconds\n',onopwl_total_time)
-    end
+
 end
