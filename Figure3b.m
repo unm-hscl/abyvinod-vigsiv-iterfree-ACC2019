@@ -200,6 +200,7 @@
             'Location','SouthOutside','FontSize',plot_fontSize);
         box on;
         axis tight
+        axis([-1 0.2 -1 0.05])
         set(gca,'FontSize',plot_fontSize)
         set(fig3,'Units','centimeters');
         set(fig3,'Position',[0 0 10 10]);
