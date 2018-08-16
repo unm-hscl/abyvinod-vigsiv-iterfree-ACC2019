@@ -1,7 +1,7 @@
 clc;clear;close all;
 
 underlineDelta = 1e-5;
-Delta = 0.5;
+Delta = 0.2;
 K=5;
 DeltaMax = 0.7;
 

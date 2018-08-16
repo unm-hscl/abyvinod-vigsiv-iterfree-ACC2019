@@ -1,6 +1,6 @@
 function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vector,...
     blackmore_opt_mean_X,blackmore_opt_val] = BlackmoreTRo11PC...
-    (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input)
+    (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset)
     %% Blackmore TRo 2011 Code to stay in a feasible set. 
     % Coder: Vignesh Sivaramakrishnan
 
@@ -34,7 +34,7 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
             variable mean_X(size(mean_GdTimesW,1),1);
             variable d(N) binary;
 
-            minimize (sum(sum((xBl-xtargetbig).^2))/N);
+            minimize (sum(sum((xBl(1:state_offset:end,:)-xtargetbig(1:state_offset:end,:)).^2))/N);
 
             subject to
               mean_X == Ad*x0+ Bd*U_vector;

@@ -3,7 +3,7 @@ function [pwa_time_to_solve,pwa_total_time,pwa_opt_input_vector,...
     (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,...
     cov_X_sans_input,PWA_logphi_underapprox_m, PWA_logphi_underapprox_c,...
     maxlierror_logphi,lower_bound_logphi,PWA_log1minusx_overapprox_m,...
-    PWA_log1minusx_overapprox_c,maxlierror_log1minusx,lower_bound_log1minusx)
+    PWA_log1minusx_overapprox_c,maxlierror_log1minusx,lower_bound_log1minusx,state_offset)
     %% PiecewiseAffineNoDeltaAssump
     % Coder: Abraham Vinod and Vignesh Sivaramakrishnan
 
@@ -24,7 +24,7 @@ function [pwa_time_to_solve,pwa_total_time,pwa_opt_input_vector,...
     Mlb = PWA_log1minusx_overapprox_m * Delta + PWA_log1minusx_overapprox_c + maxlierror_logphi;
     Mub = PWA_log1minusx_overapprox_c - log( 1 - Delta);
 
-    %% Solve the feasibility problem
+    %% Solve the optimization problem
     PWA_n_log1minusx = length(PWA_log1minusx_overapprox_m);
     tstart = tic;
     cvx_begin quiet
@@ -33,7 +33,7 @@ function [pwa_time_to_solve,pwa_total_time,pwa_opt_input_vector,...
         variable pwa_deltai(pwa_n_lin_const, 1) nonnegative;
         variable pwa_slackvar(pwa_n_lin_const, 1); 
         variable pwa_bin_log1minusx(PWA_n_log1minusx,pwa_n_lin_const) binary;
-        minimize (trace(cov_X_sans_input) + (xtarget-pwa_mean_X)'*(xtarget-pwa_mean_X))
+        minimize (trace(cov_X_sans_input(1:state_offset:end,1:state_offset:end)) + (xtarget(1:state_offset:end)-pwa_mean_X(1:state_offset:end))'*(xtarget(1:state_offset:end)-pwa_mean_X(1:state_offset:end)))
         subject to
             % (17b)
             sum(pwa_deltai) <= Delta;
