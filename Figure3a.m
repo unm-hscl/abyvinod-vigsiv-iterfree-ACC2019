@@ -72,6 +72,7 @@
        [h, gb] = target_tube.concat();
         hbig = h(8:end,5:end);
         gbig = gb(8:end);
+        state_offset = 1;
         slice_at_vx_vy = x0(3:4);             
 
         %% Generate matrices for optimal mean trajectory generation
@@ -98,11 +99,16 @@
                 function_handle,fun_monotone_phiinv);
             PWA_phiinv_overapprox_m = - PWA_negphiinv_underapprox_m;
             PWA_phiinv_overapprox_c = - PWA_negphiinv_underapprox_c;
+        else
+            PWA_phiinv_overapprox_m = zeros(T);
+            PWA_phiinv_overapprox_c = zeros(T);
+            lower_bound_phiinv = 0;
+            upper_bound_phiinv = 0;
         end
         
         % Compute underapproximation for log(Phi(x))
         logphi = @(z) log(normcdf(z));
-        maxlierror_logphi=1e-3;
+        maxlierror_logphi=5e-4;
         K = 5;
         fun_monotone_logphi = 'mono-inc';
         lower_bound_logphi = -K;
@@ -115,7 +121,7 @@
 
         % Compute underapproximation for log(1-x)
         log1minusx = @(z) log(1-z);
-        maxlierror_log1minusx=1e-3;
+        maxlierror_log1minusx=5e-4;
         fun_monotone_log1minusx = 'mono-dec';
         lower_bound_log1minusx = log(1-Delta);
         upper_bound_log1minusx = log(normcdf(K)); 
@@ -131,23 +137,23 @@
         [ono_time_to_solve,ono_total_time,ono_opt_input_vector,...
              ono_opt_mean_X,ono_opt_val] = Ono08_IRA...
              (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,...
-             mean_X_sans_input,cov_X_sans_input);
+             mean_X_sans_input,cov_X_sans_input,state_offset);
 
         [onopwl_time_to_solve,onopwl_total_time,onopwl_opt_input_vector,...
             onopwl_opt_mean_X,onopwl_opt_val] = PiecewiseAffineWithDeltaAssum...
             (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,...
-            PWA_phiinv_overapprox_m,PWA_phiinv_overapprox_c,lower_bound_phiinv,upper_bound_phiinv);
+            PWA_phiinv_overapprox_m,PWA_phiinv_overapprox_c,lower_bound_phiinv,upper_bound_phiinv,state_offset);
 
         [pwa_time_to_solve,pwa_total_time,pwa_opt_input_vector,...
             pwa_opt_mean_X,pwa_opt_val] = PiecewiseAffineNoDeltaAssum...
             (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,...
             cov_X_sans_input,PWA_logphi_underapprox_m, PWA_logphi_underapprox_c,...
             maxlierror_logphi,lower_bound_logphi,PWA_log1minusx_overapprox_m,...
-            PWA_log1minusx_overapprox_c,maxlierror_log1minusx,lower_bound_log1minusx);
+            PWA_log1minusx_overapprox_c,maxlierror_log1minusx,lower_bound_log1minusx,state_offset);
 
         [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vector,...
             blackmore_opt_mean_X,blackmore_opt_val] = BlackmoreTRo11PC...
-            (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input); 
+            (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset); 
 
 
     %% Plotting trajectories of each method: 
@@ -229,7 +235,7 @@
         particlewise_result = all(hbig*X_mcarlo_sans_init_state <= gbig);
         prob_estim = sum(particlewise_result)/n_mcarlo_sims;
         cost_estim = mean(sum((X_mcarlo_sans_init_state-xtarget_mcarlo).^2));    
-        relative_abserror_in_cost = abs(cost_estim - true_cost)/true_cost;
+        relative_abserror_in_cost = abs(cost_estim(1:state_offset:end,:) - true_cost(1:state_offset:end,:))/true_cost;
         if prob_estim >= 1-Delta && relative_abserror_in_cost <= max_rel_abserror
             fprintf('PASSD: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
                     method_str,... 

@@ -95,6 +95,11 @@
                 function_handle,fun_monotone_phiinv);
             PWA_phiinv_overapprox_m = - PWA_negphiinv_underapprox_m;
             PWA_phiinv_overapprox_c = - PWA_negphiinv_underapprox_c;
+        else
+            PWA_phiinv_overapprox_m = zeros(T);
+            PWA_phiinv_overapprox_c = zeros(T);
+            lower_bound_phiinv = 0;
+            upper_bound_phiinv = 0;
         end
         
         % Compute underapproximation for log(Phi(x))
