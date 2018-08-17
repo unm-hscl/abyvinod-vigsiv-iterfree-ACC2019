@@ -37,7 +37,7 @@
         T=5; % Stay within a line of sight cone for 4 time steps and 
                         % reach the target at t=5% Safe Set --- LoS cone
                         
-        N = 50;
+        N = 400;
         
     %% Safe set definition --- LoS cone |x|<=y and y\in[0,ymax] and |vx|<=vxmax and |vy|<=vymax
         ymax=2;
@@ -198,6 +198,7 @@
             sprintf('Piecewise linear approach - MILP (Cost: %1.3f)',...
             pwa_opt_val)},...
             'Location','SouthOutside','FontSize',plot_fontSize);
+        
         box on;
         axis tight
         axis([-1 0.2 -1 0.05])
@@ -205,6 +206,26 @@
         set(fig3,'Units','centimeters');
         set(fig3,'Position',[0 0 10 10]);
         fig3 = tightfig(fig3);
+        
+        handaxes3 = axes('position', [0.18 0.72 0.225 0.225]);
+        hold on
+        grid on
+        plot(safe_set.slice([3,4], slice_at_vx_vy), 'color', 'y','alpha',0.5);
+        plot(target_set.slice([3,4], slice_at_vx_vy), 'color', 'g','alpha',0.5);
+        scatter(x0(1),x0(2),50,'bo','filled');
+        scatter(ono_opt_mean_X(1:4:end),...
+                    ono_opt_mean_X(2:4:end),...
+                    5, 'bx');
+        scatter(blackmore_opt_mean_X(1:4:end),...
+                    blackmore_opt_mean_X(2:4:end),...
+                    5, 'ks');
+        scatter(onopwl_opt_mean_X(1:4:end),...
+                    onopwl_opt_mean_X(2:4:end),...
+                    5, 'md');
+        scatter(pwa_opt_mean_X(1:4:end),...
+                    pwa_opt_mean_X(2:4:end),...
+                    5, 'r*');
+        
         hgexport(fig3,'Figure3a',hgexport('factorystyle'),'Format', 'png')
     
 
