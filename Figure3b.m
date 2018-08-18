@@ -37,7 +37,7 @@
         T=5; % Stay within a line of sight cone for 4 time steps and 
                         % reach the target at t=5% Safe Set --- LoS cone
                         
-        N = 400;
+        N = 600;
         
     %% Safe set definition --- LoS cone |x|<=y and y\in[0,ymax] and |vx|<=vxmax and |vy|<=vymax
         ymax=2;

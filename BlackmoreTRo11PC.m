@@ -28,7 +28,7 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
         tstart = tic;
         cvx_clear
             cvx_precision BEST
-        cvx_begin 
+        cvx_begin quiet
             variable U_vector(size(Bd,2),1);
             variable xBl(size(mean_GdTimesW,1),N);
             variable mean_X(size(mean_GdTimesW,1),1);

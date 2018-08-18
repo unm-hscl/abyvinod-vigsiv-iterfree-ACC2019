@@ -62,7 +62,7 @@
 
         % Number of particles for BlackmorePCApproach: 
 
-            N = 10;
+            N = 100;
         
 
      %% Prepare system matrices: 
