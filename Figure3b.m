@@ -37,7 +37,7 @@
         T=5; % Stay within a line of sight cone for 4 time steps and 
                         % reach the target at t=5% Safe Set --- LoS cone
                         
-        N = 600;
+        N = 200;
         
     %% Safe set definition --- LoS cone |x|<=y and y\in[0,ymax] and |vx|<=vxmax and |vy|<=vymax
         ymax=2;
@@ -82,7 +82,7 @@
         
         % Probability of being outside the safe set: 
 
-            Delta = 0.8;
+            Delta = 0.6;
             
         if Delta <= 0.5
             % Generate the PW realization of the distribution for PWLRA: 

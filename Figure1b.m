@@ -62,7 +62,7 @@
 
         % Number of particles for BlackmorePCApproach: 
 
-            N = 100;
+            N = 10;
         
 
      %% Prepare system matrices: 
@@ -199,13 +199,12 @@
         set(fig1,'Position',[0 0 10 10]);
         fig1 = tightfig(fig1);
         hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'png')
+        hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'eps')
+        saveas(gcf,'Figures/Fgiure1b.fig','fig');
     
 
     %% Monte-Carlo simulation using SReachTools
-        n_mcarlo_sims = 1e5;
-        % FIXME: Shouldn't be redefining this again!
-        hbig = kron(eye(T),h);
-        gbig = kron(gb,[1,1])';    
+        n_mcarlo_sims = 1e5;  
         xtarget_mcarlo = repmat(xtarget, 1, n_mcarlo_sims);
         collection_of_input_vectors = [blackmore_opt_input_vector, ono_opt_input_vector, onopwl_opt_input_vector, pwa_opt_input_vector];
         collection_of_costs = [blackmore_opt_val, ono_opt_val, onopwl_opt_val,pwa_opt_val];

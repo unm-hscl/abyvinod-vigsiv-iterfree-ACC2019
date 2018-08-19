@@ -62,7 +62,7 @@
 
         % Number of particles for BlackmorePCApproach: 
 
-            N = 50;
+            N = 40;
         
 
      %% Prepare system matrices: 
@@ -198,6 +198,9 @@
         set(fig1,'Position',[0 0 10 10]);
         fig1 = tightfig(fig1);
         hgexport(fig1,'Figure1a',hgexport('factorystyle'),'Format', 'png')
+        hgexport(fig1,'Figure1a',hgexport('factorystyle'),'Format', 'eps')
+        saveas(gcf,'Figures/Fgiure1a.fig','fig');
+        
     
 
     %% Monte-Carlo simulation using SReachTools
