@@ -22,7 +22,7 @@
 
         % Time Horizons: 
 
-            T_array = 10:10:40; 
+            T_array = 10:10:30; 
             
                 % Disturbance parameters: 
 

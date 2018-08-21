@@ -225,6 +225,8 @@
                     5, 'r*');
         
         hgexport(fig3,'Figure3b',hgexport('factorystyle'),'Format', 'png')
+        hgexport(fig3,'Figure3b',hgexport('factorystyle'),'Format', 'eps')
+        saveas(gcf,'Figures/Fgiure3b.fig','fig');
     
 
     %% Monte-Carlo simulation using SReachTools
