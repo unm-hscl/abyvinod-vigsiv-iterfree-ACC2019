@@ -21,7 +21,7 @@
 
         % Time Horizon: 
 
-            T = 50; 
+            T = 10; 
 
         % Probability of being outside the safe set: 
 
@@ -62,7 +62,7 @@
 
         % Number of particles for BlackmorePCApproach: 
 
-            N = 10;
+            N = 100;
         
 
      %% Prepare system matrices: 
@@ -215,7 +215,7 @@
                                         'PWA MILP-based'};
     % SReachTools for Monte-Carlo simulation
         max_rel_abserror = 0.1;
-        fprintf('Desired P{Hx<=g}: %1.2f | Desired relative abserror in cost: %1.2f\n',Delta,max_rel_abserror);
+        fprintf('Desired P{Hx<=g}: %1.2f | Desired relative abserror in cost: %1.2f\n',1-Delta,max_rel_abserror);
         for input_vec_indx = 1:4
             U_vector = collection_of_input_vectors(:,input_vec_indx);
             method_str = collection_of_method_strings{input_vec_indx};
@@ -229,20 +229,22 @@
                     U_vector);
             % all does it column-wise
             particlewise_result = all(hbig*X_mcarlo_sans_init_state <= gbig);
-            prob_estim = sum(particlewise_result)/n_mcarlo_sims;
+            prob_estim(input_vec_indx) = sum(particlewise_result)/n_mcarlo_sims;
             cost_estim = mean(sum((X_mcarlo_sans_init_state(1:state_offset:end,:)-xtarget_mcarlo(1:state_offset:end,:)).^2));    
-            relative_abserror_in_cost = abs(cost_estim - true_cost)/true_cost;
-            if prob_estim >= 1-Delta && relative_abserror_in_cost <= max_rel_abserror
+            relative_abserror_in_cost(input_vec_indx) = abs(cost_estim - true_cost)/true_cost;
+            if prob_estim(input_vec_indx) >= 1-Delta && relative_abserror_in_cost(input_vec_indx) <= max_rel_abserror
                 fprintf('PASSD: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
                         method_str,... 
                         n_mcarlo_sims,...
-                        prob_estim,...
-                        relative_abserror_in_cost);
+                        prob_estim(input_vec_indx),...
+                        relative_abserror_in_cost(input_vec_indx));
             else
                 fprintf('ERROR: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
                         method_str,... 
                         n_mcarlo_sims,...
-                        prob_estim,...
-                        relative_abserror_in_cost);
+                        prob_estim(input_vec_indx),...
+                        relative_abserror_in_cost(input_vec_indx));
             end
         end
+        
+    save('Figure1b-0.6-Run3.mat')

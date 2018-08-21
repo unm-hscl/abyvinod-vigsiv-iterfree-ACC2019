@@ -22,7 +22,7 @@
 
         % Time Horizons: 
 
-            T_array = 30:10:70; 
+            T_array = 10:10:40; 
             
                 % Disturbance parameters: 
 
@@ -40,7 +40,7 @@
 
         % Number of particles for BlackmorePCApproach: 
 
-            N = 10;
+            N = 100;
 
         % Probability of being outside the safe set: 
 
@@ -158,10 +158,7 @@
     
 
     %% Monte-Carlo simulation using SReachTools
-        n_mcarlo_sims = 1e5;
-        % FIXME: Shouldn't be redefining this again!
-        hbig = kron(eye(T),h);
-        gbig = kron(gb,[1,1])';    
+        n_mcarlo_sims = 1e5; 
         xtarget_mcarlo = repmat(xtarget, 1, n_mcarlo_sims);
         collection_of_input_vectors = [blackmore_opt_input_vector, ono_opt_input_vector, onopwl_opt_input_vector, pwa_opt_input_vector];
         collection_of_costs = [blackmore_opt_val, ono_opt_val, onopwl_opt_val,pwa_opt_val];
@@ -172,7 +169,7 @@
                                         'PWA MILP-based'};
     % SReachTools for Monte-Carlo simulation
         max_rel_abserror = 0.1;
-        fprintf('Desired P{Hx<=g}: %1.2f | Desired relative abserror in cost: %1.2f\n',Delta,max_rel_abserror);
+        fprintf('Desired P{Hx<=g}: %1.2f | Desired relative abserror in cost: %1.2f\n',1-Delta,max_rel_abserror);
         for input_vec_indx = 1:4
             U_vector = collection_of_input_vectors(:,input_vec_indx);
             method_str = collection_of_method_strings{input_vec_indx};
@@ -238,6 +235,7 @@
             'Location','SouthOutside','FontSize',plot_fontSize);
         box on;
         set(gca,'FontSize',plot_fontSize)
+        set(gca, 'YScale', 'log')
         set(fig2,'Units','centimeters');
         set(fig2,'Position',[0 0 10 8.8]);
         fig1 = tightfig(fig2);

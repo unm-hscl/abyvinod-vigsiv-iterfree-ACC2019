@@ -71,6 +71,4 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
             ,N,blackmore_time_to_solve)
 
         d = full(d);
-        disp('------------------------------------')
-        fprintf('Total Run Time: %1.4f seconds\n', cvx_cputime + blackmore_time_to_solve)
 end
