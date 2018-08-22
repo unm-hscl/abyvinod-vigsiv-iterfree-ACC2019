@@ -3,6 +3,11 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
     (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset)
     %% Blackmore TRo 2011 Code to stay in a feasible set. 
     % Coder: Vignesh Sivaramakrishnan
+    
+    % The following housekeeping if statement does not run Blackmore for
+    % longer than 40 seconds for it takes way to long to compute. 
+    
+
 
     % System matrices: 
 
@@ -20,6 +25,17 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
         mean_GdTimesW = repmat(mean_w,T,N);
 
         GdTimesW = mvnrnd(mean_GdTimesW', cov_X_sans_input)';
+        
+    if T >= 40
+        
+        blackmore_opt_mean_X = nan(length(mean_GdTimesW),1);
+        blackmore_opt_val = nan;
+        blackmore_opt_input_vector = nan(size(Bd,2),1); 
+        blackmore_time_to_solve = nan;
+        blackmore_total_time = nan;
+        warning('NOTE: BlackmoreTRo11 takes a very long time for long time horizons!!')
+        return;
+    else
 
 
     %% Run optimization problem for an optimal control policy
@@ -63,6 +79,7 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
             blackmore_opt_val = nan;
             blackmore_opt_input_vector = nan(size(Bd,2),1);         
         end
+    end
 
         fprintf('Total CVX Run Time for %1i particles: %1.4f seconds\n',...
             N,cvx_cputime)

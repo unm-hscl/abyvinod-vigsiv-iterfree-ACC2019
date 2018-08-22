@@ -22,7 +22,7 @@
 
         % Time Horizons: 
 
-            T_array = 10:10:30; 
+            T_array = 10:10:60; 
             
                 % Disturbance parameters: 
 
@@ -236,7 +236,13 @@
         box on;
         set(gca,'FontSize',plot_fontSize)
         set(gca, 'YScale', 'log')
+        set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+        set(groot, 'defaultLegendInterpreter','latex');
+        set(groot, 'defaulttextInterpreter','latex');
         set(fig2,'Units','centimeters');
-        set(fig2,'Position',[0 0 10 8.8]);
+        set(fig2,'Position',[0 0 8.8 8.8]);
+        grid on
         fig1 = tightfig(fig2);
         hgexport(fig2,'Figure2',hgexport('factorystyle'),'Format', 'png')
+        hgexport(fig1,'Figure2',hgexport('factorystyle'),'Format', 'eps')
+        saveas(gcf,'Figures/Fgiure2.fig','fig');
