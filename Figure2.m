@@ -22,7 +22,7 @@
 
         % Time Horizons: 
 
-            T_array = 10:10:80; 
+            T_array = 10:10:60; 
             
                 % Disturbance parameters: 
 
@@ -100,6 +100,8 @@
         % Initial conditions that are time varying:  
             xtarget = linspace(-0.4,0.2,T)';
             xtarget = reshape([xtarget'; zeros(size(xtarget'))],[],1);
+            Q = kron(eye(T),diag([10 1])); 
+            R = kron(eye(T),0.001);
             
         % Bounds on the safe set: 
         
@@ -109,7 +111,7 @@
         % Generate bounds for Ono and PWA: 
             hbig = kron(eye(T),h);
             gbig = kron(gb,[1,1])';
-            state_offset = 2;
+            state_offset = 1;
   
 
      %% Prepare system matrices: 
@@ -136,29 +138,31 @@
         [ono_time_to_solve,ono_total_time,ono_opt_input_vector,...
              ono_opt_mean_X,ono_opt_val] = Ono08_IRA...
              (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,...
-             mean_X_sans_input,cov_X_sans_input,state_offset);
+             mean_X_sans_input,cov_X_sans_input,state_offset,Q,R);
 
 
         [onopwl_time_to_solve,onopwl_total_time,onopwl_opt_input_vector,...
             onopwl_opt_mean_X,onopwl_opt_val] = PiecewiseAffineWithDeltaAssum...
             (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,...
-            PWA_phiinv_overapprox_m,PWA_phiinv_overapprox_c,lower_bound_phiinv,upper_bound_phiinv,state_offset);
+            PWA_phiinv_overapprox_m,PWA_phiinv_overapprox_c,lower_bound_phiinv,upper_bound_phiinv,state_offset,Q,R);
 
         [pwa_time_to_solve,pwa_total_time,pwa_opt_input_vector,...
             pwa_opt_mean_X,pwa_opt_val] = PiecewiseAffineNoDeltaAssum...
             (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,...
             cov_X_sans_input,PWA_logphi_underapprox_m, PWA_logphi_underapprox_c,...
             maxlierror_logphi,lower_bound_logphi,PWA_log1minusx_overapprox_m,...
-            PWA_log1minusx_overapprox_c,maxlierror_log1minusx,lower_bound_log1minusx,state_offset);
+            PWA_log1minusx_overapprox_c,maxlierror_log1minusx,lower_bound_log1minusx,state_offset,Q,R);
 
         [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vector,...
             blackmore_opt_mean_X,blackmore_opt_val] = BlackmoreTRo11PC...
-            (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset);
+            (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset,Q,R);
 
     
 
     %% Monte-Carlo simulation using SReachTools
         n_mcarlo_sims = 1e5; 
+        Q = diag(Q);
+        Q = repmat(Q,1,n_mcarlo_sims);
         xtarget_mcarlo = repmat(xtarget, 1, n_mcarlo_sims);
         collection_of_input_vectors = [blackmore_opt_input_vector, ono_opt_input_vector, onopwl_opt_input_vector, pwa_opt_input_vector];
         collection_of_costs = [blackmore_opt_val, ono_opt_val, onopwl_opt_val,pwa_opt_val];
@@ -184,8 +188,8 @@
             % all does it column-wise
             particlewise_result = all(hbig*X_mcarlo_sans_init_state <= gbig);
             prob_estim = sum(particlewise_result)/n_mcarlo_sims;
-            cost_estim = mean(sum((X_mcarlo_sans_init_state(1:state_offset:end,:)-xtarget_mcarlo(1:state_offset:end,:)).^2));    
-            relative_abserror_in_cost = abs(cost_estim - true_cost)/true_cost;
+            cost_estim(input_vec_indx) = mean(1/n_mcarlo_sims*sum(sum((X_mcarlo_sans_init_state(1:state_offset:end,:)-xtarget_mcarlo(1:state_offset:end,:)).^2.*Q))+U_vector'*R*U_vector); 
+            relative_abserror_in_cost = abs(cost_estim(input_vec_indx) - true_cost)/true_cost;
             if prob_estim >= 1-Delta && relative_abserror_in_cost <= max_rel_abserror
                 fprintf('PASSD: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
                         method_str,... 
@@ -230,8 +234,8 @@
 %         title('Time Horizon vs. Solve time')
         legend([h1 h2 h3 h4],{'Ono2008 IRA Method',...
             sprintf('Blackmore11 PC Method, %i Particles',N),...
-            'Piecewise affine approach - CVX',...
-            'Piecewise linear approach - MILP'},...
+            'Piecewise affine approach - QP',...
+            'Piecewise linear approach - MIQP'},...
             'Location','SouthOutside','FontSize',plot_fontSize);
         box on;
         set(gca,'FontSize',plot_fontSize)

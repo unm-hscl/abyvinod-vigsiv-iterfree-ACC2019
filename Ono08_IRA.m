@@ -1,6 +1,6 @@
 function [ono_time_to_solve,ono_total_time,ono_opt_input_vector,...
     ono_opt_mean_X,ono_opt_val] = Ono08_IRA...
-    (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,state_offset)
+    (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,state_offset,Q,R)
 %% Ono_IRA 2008 code
 % Coder: Abraham Vinod and Vignesh Sivaramakrishnan
 
@@ -147,6 +147,7 @@ ono_opt_value_array(1) = opt_value_prev;
         % Construct the back-off (Hessem's term) in the constraints
         scaled_norminv=sigma_vector.*...
                           norminv(ones(no_linear_constraints,1)- delta_vec);
+        
         cvx_precision BEST
         tstart = tic;
         cvx_begin quiet
@@ -154,9 +155,9 @@ ono_opt_value_array(1) = opt_value_prev;
             variable mean_X(size(mean_X_sans_input,1), 1);
             % E[ e^t e] where e= (xtarget - x)
             minimize (trace(cov_X_sans_input(1:state_offset:end,1:state_offset:end)) +...
-                (xtarget(1:state_offset:end)-mean_X(1:state_offset:end))'*...
+                (xtarget(1:state_offset:end)-mean_X(1:state_offset:end))'*Q*...
                 (xtarget(1:state_offset:end)-mean_X(1:state_offset:end))+...
-                0.001*U_vector'*U_vector)
+                U_vector'*R*U_vector)
                 
             subject to
                 mean_X == Ad*x0+ Bd*U_vector; 

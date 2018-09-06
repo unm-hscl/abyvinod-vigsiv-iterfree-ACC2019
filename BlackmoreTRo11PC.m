@@ -1,6 +1,6 @@
 function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vector,...
     blackmore_opt_mean_X,blackmore_opt_val] = BlackmoreTRo11PC...
-    (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset)
+    (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset,Q,R)
     %% Blackmore TRo 2011 Code to stay in a feasible set. 
     % Coder: Vignesh Sivaramakrishnan
     
@@ -26,7 +26,7 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
 
         GdTimesW = mvnrnd(mean_GdTimesW', cov_X_sans_input)';
         
-    if T >= 40
+    if T >= 20
         
         blackmore_opt_mean_X = nan(length(mean_GdTimesW),1);
         blackmore_opt_val = nan;
@@ -41,16 +41,18 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
     %% Run optimization problem for an optimal control policy
     % We run an optimization problem to determine the control policy over the
     % time horizon T.
+        Q = diag(Q);
+        Q = repmat(Q,1,N);
         tstart = tic;
         cvx_clear
             cvx_precision BEST
-        cvx_begin quiet
+        cvx_begin 
             variable U_vector(size(Bd,2),1);
             variable xBl(size(mean_GdTimesW,1),N);
             variable mean_X(size(mean_GdTimesW,1),1);
             variable d(N) binary;
 
-            minimize (sum(sum((xBl(1:state_offset:end,:)-xtargetbig(1:state_offset:end,:)).^2))/N + 0.001*sum(U_vector).^2);
+            minimize (1/N*sum(sum((xBl(1:state_offset:end,:)-xtargetbig(1:state_offset:end,:)).^2.*Q))+U_vector'*R*U_vector);
 
             subject to
               mean_X == Ad*x0+ Bd*U_vector;
