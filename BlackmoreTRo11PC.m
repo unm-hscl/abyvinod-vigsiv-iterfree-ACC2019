@@ -50,7 +50,7 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
             variable mean_X(size(mean_GdTimesW,1),1);
             variable d(N) binary;
 
-            minimize (sum(sum((xBl(1:state_offset:end,:)-xtargetbig(1:state_offset:end,:)).^2))/N);
+            minimize (sum(sum((xBl(1:state_offset:end,:)-xtargetbig(1:state_offset:end,:)).^2))/N + 0.001*sum(U_vector).^2);
 
             subject to
               mean_X == Ad*x0+ Bd*U_vector;

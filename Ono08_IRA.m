@@ -155,7 +155,8 @@ ono_opt_value_array(1) = opt_value_prev;
             % E[ e^t e] where e= (xtarget - x)
             minimize (trace(cov_X_sans_input(1:state_offset:end,1:state_offset:end)) +...
                 (xtarget(1:state_offset:end)-mean_X(1:state_offset:end))'*...
-                (xtarget(1:state_offset:end)-mean_X(1:state_offset:end)))+
+                (xtarget(1:state_offset:end)-mean_X(1:state_offset:end))+...
+                0.001*U_vector'*U_vector)
                 
             subject to
                 mean_X == Ad*x0+ Bd*U_vector; 
