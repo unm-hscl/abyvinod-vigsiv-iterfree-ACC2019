@@ -41,14 +41,14 @@
         % Generate bounds for Ono and PWA: 
             hbig = kron(eye(T),h);
             gbig = kron(gb,[1,1])';
-            state_offset = 2;
+            state_offset = 1;
             
         % Generate bounds for Blackmore: 
 
             
         % Disturbance parameters: 
 
-            cov_mat_diag = 0.0001*diag([1 0;]); 
+            cov_mat_diag = 0.0001*eye(2); 
             mean_w = [0;0];
 
 
@@ -185,7 +185,7 @@
 %         title('\textbf{Trajectory}')
         legend([h1 h11 h2 h3 h4 h5 h6],{'Target Tube',...
             'Initial state','Target Trajectory',...
-            sprintf('Ono2008 IRA Method (Cost: %1.3f)',...
+            'Ono2008 IRA Method (Cost: %1.3f)',...
             ono_opt_val),sprintf('Blackmore11 PC Method, %i Particles (Cost: %1.3f)',...
             N,blackmore_opt_val),...
             sprintf('Piecewise affine approach - CVX (Cost: %1.3f)',...
