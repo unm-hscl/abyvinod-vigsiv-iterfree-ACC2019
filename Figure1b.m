@@ -25,11 +25,10 @@
 
         % Probability of being outside the safe set: 
 
-            Delta = 0.8;
+            Delta = 0.6;
 
         % Initial conditions:   
 
-            x0 = [0.4;0];
             xtarget = linspace(-0.4,0.2,T)';
             xtarget = reshape([xtarget'; zeros(size(xtarget'))],[],1);
             Q = kron(eye(T),diag([10 1])); 
@@ -50,8 +49,11 @@
             
         % Disturbance parameters: 
 
-            cov_mat_diag = 0.0001*diag([1 0;]); 
+            cov_mat_diag = 0.0001*eye(2); 
             mean_w = [0;0];
+            cov_mat = kron(eye(T+1),cov_mat_diag); 
+            mean_x = [0.4;0];
+            x0 = RandomVector('Gaussian',mean_x,cov_mat_diag);
 
 
         % Maximum/minimum bound on input: 
@@ -69,9 +71,7 @@
 
      %% Prepare system matrices: 
 
-        % Generate a large cov_mat for the optimizaiton problem:
-        
-            cov_mat = kron(eye(T+1),cov_mat_diag); 
+
 
         % Generate nominal x using SReachTools:
         
@@ -79,8 +79,8 @@
                 Polyhedron('lb',-ulim,'lb',ulim),...
                 RandomVector('Gaussian',mean_w,cov_mat_diag));    
             [Ad, Bd, Gd] = getConcatMats(sys, T);
-            [~, mean_X_sans_input, cov_X_sans_input] =...
-                getHmatMeanCovForXSansInput(sys, x0, T);  
+            [HH, mean_X_sans_input, cov_X_sans_input] =...
+                getHmatMeanCovForXSansInput(sys,x0, T);  
             
         if Delta <= 0.5
             % Generate the PW realization of the distribution for PWLRA: 
@@ -97,7 +97,6 @@
                 function_handle,fun_monotone_phiinv);
             PWA_phiinv_overapprox_m = - PWA_negphiinv_underapprox_m;
             PWA_phiinv_overapprox_c = - PWA_negphiinv_underapprox_c;
-            
         else
             PWA_phiinv_overapprox_m = zeros(T);
             PWA_phiinv_overapprox_c = zeros(T);
@@ -107,7 +106,7 @@
         
         % Compute underapproximation for log(Phi(x))
         logphi = @(z) log(normcdf(z));
-        maxlierror_logphi=5E-4;
+        maxlierror_logphi=5e-4;
         K = 5;
         fun_monotone_logphi = 'mono-inc';
         lower_bound_logphi = -K;
@@ -120,7 +119,7 @@
 
         % Compute underapproximation for log(1-x)
         log1minusx = @(z) log(1-z);
-        maxlierror_log1minusx=5E-4;
+        maxlierror_log1minusx=5e-4;
         fun_monotone_log1minusx = 'mono-dec';
         lower_bound_log1minusx = log(1-Delta);
         upper_bound_log1minusx = log(normcdf(K)); 
@@ -136,27 +135,30 @@
 
         [ono_time_to_solve,ono_total_time,ono_opt_input_vector,...
              ono_opt_mean_X,ono_opt_val] = Ono08_IRA...
-             (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,...
+             (Delta,xtarget,ulim,hbig,gbig,Ad,Bd,...
              mean_X_sans_input,cov_X_sans_input,state_offset,Q,R);
 
 
         [onopwl_time_to_solve,onopwl_total_time,onopwl_opt_input_vector,...
             onopwl_opt_mean_X,onopwl_opt_val] = PiecewiseAffineWithDeltaAssum...
-            (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,...
+            (Delta,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,...
             PWA_phiinv_overapprox_m,PWA_phiinv_overapprox_c,lower_bound_phiinv,upper_bound_phiinv,state_offset,Q,R);
 
         [pwa_time_to_solve,pwa_total_time,pwa_opt_input_vector,...
             pwa_opt_mean_X,pwa_opt_val] = PiecewiseAffineNoDeltaAssum...
-            (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,...
+            (Delta,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,...
             cov_X_sans_input,PWA_logphi_underapprox_m, PWA_logphi_underapprox_c,...
             maxlierror_logphi,lower_bound_logphi,PWA_log1minusx_overapprox_m,...
             PWA_log1minusx_overapprox_c,maxlierror_log1minusx,lower_bound_log1minusx,state_offset,Q,R);
-
+        
+        stoc_x0_flag = 1; 
+        
         for run_indx = 1:3
             fprintf('Run : %d\n',run_indx);
             [blackmore_time_to_solve(run_indx),blackmore_total_time(run_indx),blackmore_opt_input_vector(:,run_indx),...
                 blackmore_opt_mean_X(:,run_indx),blackmore_opt_val(run_indx)] = BlackmoreTRo11PC...
-                (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset,Q,R);
+                (N,T,Delta,mean_X_sans_input,stoc_x0_flag,xtarget,...
+                ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset,Q,R);
         end
         
     %% Plotting trajectories of each method: 
@@ -170,12 +172,12 @@
             [gbig(1),gbig(1:2:end)']]'; % Note: This needs MPT to run!!
         P = Polyhedron('V',polyvertex);
         h1 = plot(P,'alpha',0.1);
-        h11 = scatter(1,x0(1),plot_markersize*10,'filled');
+        h11 = scatter(1,mean_x(1),plot_markersize*10,'filled');
         h2 = plot(2:(T+1),xtarget(1:2:end),'go','MarkerSize',...
             plot_markersize,'LineWidth',2);
         h3 = plot(2:(T+1),onopwl_opt_mean_X(1:2:end),'md',...
             'LineWidth',1,'MarkerSize',plot_markersize);
-        h4 = plot(2:(T+1),ono_opt_mean_X(1:2:end),'bx',...
+        h4 = plot(2:(T+1),ono_opt_mean_X(1:2:end),'b^',...
             'LineWidth',1,'MarkerSize',plot_markersize);
         h5 = plot(2:(T+1),pwa_opt_mean_X(1:2:end),'r*',...
             'LineWidth',1,'MarkerSize',plot_markersize);
@@ -186,15 +188,15 @@
         set(groot, 'defaultLegendInterpreter','latex');
         set(groot, 'defaulttextInterpreter','latex');
         
-        xlabel('\textbf{Time (seconds)}')
+        xlabel('\textbf{Time Step}')
         ylabel('\textbf{Position (x)}')
 %         title('\textbf{Trajectory}')
         legend([h1 h11 h2 h3 h4 h5 h6],{'Target Tube',...
             'Initial state','Target Trajectory',...
             'Piecewise affine approach - QP',...
-            'Ono2008 IRA Method',...
-            'Piecewise linear approach - MIQP',...
-            sprintf('Blackmore11 PC Method, %i Particles',N)},...
+            'Iterative risk allocation (IRA)',...
+            'Piecewise affine approach - MIQP',...
+            sprintf('Particle control (PC), %i Particles',N)},...
             'Location','SouthOutside','FontSize',plot_fontSize);
         box on;
         set(gca,'FontSize',plot_fontSize)
@@ -203,7 +205,8 @@
         fig1 = tightfig(fig1);
         hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'png')
         hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'eps')
-        saveas(gcf,'Figures/Fgiure1b.fig','fig');
+        saveas(gcf,'Figures/Figure1b.fig','fig');
+        
     
 
     %% Monte-Carlo simulation using SReachTools
@@ -267,8 +270,8 @@
     disp('QP | IRA | MIQP | Blackmore');
     disp('Solve time');
     disp([collection_of_time_to_solve(1:3),mean(collection_of_time_to_solve(4:6))]);
-    disp('Relative absolute error in cost (10^-3)');
+    disp('Relative absolute error in cost (10^-4)');
     disp([10^3*relative_abserror_in_cost(1:3), 10^3*mean(relative_abserror_in_cost(4:6))]);        
     disp('Safety probability');
     disp([prob_estim(1:3),mean(prob_estim(4:6))]);
-    save('Figure1b-0.6.mat')
+    save('Figure1b-0.4-Run3.mat')

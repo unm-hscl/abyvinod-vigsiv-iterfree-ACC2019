@@ -1,6 +1,6 @@
 function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vector,...
     blackmore_opt_mean_X,blackmore_opt_val] = BlackmoreTRo11PC...
-    (N,T,Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset,Q,R)
+    (N,T,Delta,mean_X_sans_input,stoc_x0_flag,xtarget,ulim,hbig,gbig,Ad,Bd,mean_w,cov_X_sans_input,state_offset,Q,R)
     %% Blackmore TRo 2011 Code to stay in a feasible set. 
     % Coder: Vignesh Sivaramakrishnan
     
@@ -26,7 +26,18 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
 
         GdTimesW = mvnrnd(mean_GdTimesW', cov_X_sans_input)';
         
-    if T >= 40
+        if stoc_x0_flag == 1
+        
+            % Randomly generate the disturbance vector from the standard normal.
+
+            x0 = mvnrnd(mean_X_sans_input(1:size(Ad,2)), cov_X_sans_input(1:size(Ad,2),1:size(Ad,2)))';
+            
+        else 
+            x0 = mean_X_sans_input(1:size(Ad,2));
+        end
+            
+        
+    if T >= 20
         
         blackmore_opt_mean_X = nan(length(mean_GdTimesW),1);
         blackmore_opt_val = nan;

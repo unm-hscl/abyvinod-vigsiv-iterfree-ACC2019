@@ -1,6 +1,6 @@
 function [ono_time_to_solve,ono_total_time,ono_opt_input_vector,...
     ono_opt_mean_X,ono_opt_val] = Ono08_IRA...
-    (Delta,x0,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,state_offset,Q,R)
+    (Delta,xtarget,ulim,hbig,gbig,Ad,Bd,mean_X_sans_input,cov_X_sans_input,state_offset,Q,R)
 %% Ono_IRA 2008 code
 % Coder: Abraham Vinod and Vignesh Sivaramakrishnan
 
@@ -59,7 +59,7 @@ while N_active > 0 && iter_count < 50
         variable slack_variables(no_linear_constraints, 1) nonnegative;
         minimize norm(slack_variables,1);
         subject to
-            mean_X == mean_X_sans_input + Bd*U_vector; 
+            mean_X == Ad*mean_X_sans_input(1:size(Ad,2)) + Bd*U_vector; 
             abs(U_vector) <= ulim; 
             hbig*mean_X<=gbig - scaled_norminv + slack_variables;
     t1 = toc(tstart);
@@ -160,7 +160,7 @@ ono_opt_value_array(1) = opt_value_prev;
                 U_vector'*R*U_vector)
                 
             subject to
-                mean_X == Ad*x0+ Bd*U_vector; 
+                mean_X == Ad*mean_X_sans_input(1:size(Ad,2))+ Bd*U_vector; 
                 abs(U_vector) <= ulim; 
                 hbig*mean_X<=gbig - scaled_norminv;
         t1 = toc(tstart);
