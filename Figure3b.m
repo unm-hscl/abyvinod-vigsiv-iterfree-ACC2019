@@ -174,7 +174,7 @@
         hold on
         h1 = plot(safe_set.slice([3,4], slice_at_vx_vy), 'color', 'y','alpha',0.5);
         h2 = plot(target_set.slice([3,4], slice_at_vx_vy), 'color', 'g','alpha',0.5);
-        h3 = scatter(x0(1),x0(2),10*plot_markersize,'bo','filled');
+        h3 = scatter(x0(1),x0(2),5*plot_markersize,'bo','filled');
         h4 = scatter(onopwl_opt_mean_X(1:4:end),...
                     onopwl_opt_mean_X(2:4:end),...
                     10*plot_markersize, 'md');
@@ -209,7 +209,7 @@
         
         box on;
         axis tight
-        axis([-1 0.2 -1 0.05])
+        axis([-1.15 0.2 -1 0.05])
         set(gca,'FontSize',plot_fontSize)
         set(fig3,'Units','centimeters');
         set(fig3,'Position',[0 0 10 10]);
