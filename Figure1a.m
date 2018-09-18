@@ -163,7 +163,7 @@
         
     %% Plotting trajectories of each method: 
 
-        plot_markersize = 10;
+        plot_markersize = 8;
         plot_fontSize = 9;
         fig1 = figure(1);
         clf

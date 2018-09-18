@@ -27,7 +27,7 @@ function [pwa_time_to_solve,pwa_total_time,pwa_opt_input_vector,...
     %% Solve the optimization problem
     PWA_n_log1minusx = length(PWA_log1minusx_overapprox_m);
     tstart = tic;
-    cvx_begin 
+    cvx_begin quiet
         variable pwa_U_vector(size(Bd,2),1);
         variable pwa_mean_X(length(mean_X_sans_input), 1);
         variable pwa_deltai(pwa_n_lin_const, 1) nonnegative;

@@ -24,12 +24,10 @@
 
             T_array = 10:10:60; 
             
-        % Disturbance parameters: 
+                % Disturbance parameters: 
 
-            cov_mat_diag = 0.0001*eye(2); 
+            cov_mat_diag = 0.0001*diag([1 0;]); 
             mean_w = [0;0];
-            mean_x = [0.4;0];
-            x0 = RandomVector('Gaussian',mean_x,cov_mat_diag);
 
 
         % Maximum/minimum bound on input: 
@@ -42,7 +40,7 @@
 
         % Number of particles for BlackmorePCApproach: 
 
-            N = 100;
+            N = 50;
 
         % Probability of being outside the safe set: 
 
@@ -156,7 +154,7 @@
             maxlierror_logphi,lower_bound_logphi,PWA_log1minusx_overapprox_m,...
             PWA_log1minusx_overapprox_c,maxlierror_log1minusx,lower_bound_log1minusx,state_offset,Q,R);
         
-        stoc_x0_flag = 1; 
+        stoc_x0_flag = 0; 
 
         [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vector,...
             blackmore_opt_mean_X,blackmore_opt_val] = BlackmoreTRo11PC...
@@ -235,13 +233,13 @@
         h4 = plot(T_array,BlackmoreTTS,'ks',...
             'LineWidth',1,'MarkerSize',plot_markersize);
         
-        xlabel('\textbf{Time Horizon (seconds)}')
+        xlabel('\textbf{Time Horizon}')
         ylabel('\textbf{Time to Solve (seconds)}')
 %         title('Time Horizon vs. Solve time')
         legend([h1 h2 h3 h4],{'Piecewise affine approach - QP',...
             'Ono2008 IRA Method',...
-            'Piecewise linear approach - MIQP'},...
-            sprintf('Blackmore11 PC Method, %i Particles',N),...
+            'Piecewise linear approach - MIQP',...
+            sprintf('Blackmore11 PC Method, %i Particles',N)},...
             'Location','SouthOutside','FontSize',plot_fontSize);
         box on;
         set(gca,'FontSize',plot_fontSize)

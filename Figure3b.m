@@ -209,7 +209,9 @@
         
         box on;
         axis tight
-        axis([-1.15 0.2 -1 0.05])
+        axis([-1.15 0.2 -1.15 0.05])
+        set(gca,'XTick',sort([-1.15,get(gca,'XTick')]));
+        set(gca,'YTick',sort([-1.15,get(gca,'YTick')]));
         set(gca,'FontSize',plot_fontSize)
         set(fig3,'Units','centimeters');
         set(fig3,'Position',[0 0 10 10]);
@@ -233,6 +235,7 @@
         scatter(pwa_opt_mean_X(1:4:end),...
                     pwa_opt_mean_X(2:4:end),...
                     5, 'r*');
+                
         
         hgexport(fig3,'Figure3b',hgexport('factorystyle'),'Format', 'png')
         hgexport(fig3,'Figure3b',hgexport('factorystyle'),'Format', 'eps')

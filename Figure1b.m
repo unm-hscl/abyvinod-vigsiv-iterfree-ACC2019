@@ -49,7 +49,7 @@
             
         % Disturbance parameters: 
 
-            cov_mat_diag = 0.0001*eye(2); 
+            cov_mat_diag = 0.001*eye(2); 
             mean_w = [0;0];
             cov_mat = kron(eye(T+1),cov_mat_diag); 
             mean_x = [0.4;0];
@@ -270,7 +270,7 @@
     disp('QP | IRA | MIQP | Blackmore');
     disp('Solve time');
     disp([collection_of_time_to_solve(1:3),mean(collection_of_time_to_solve(4:6))]);
-    disp('Relative absolute error in cost (10^-4)');
+    disp('Relative absolute error in cost (10^-3)');
     disp([10^3*relative_abserror_in_cost(1:3), 10^3*mean(relative_abserror_in_cost(4:6))]);        
     disp('Safety probability');
     disp([prob_estim(1:3),mean(prob_estim(4:6))]);

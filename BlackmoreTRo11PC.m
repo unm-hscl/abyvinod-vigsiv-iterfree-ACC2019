@@ -37,7 +37,7 @@ function [blackmore_time_to_solve,blackmore_total_time,blackmore_opt_input_vecto
         end
             
         
-    if T >= 20
+    if T >= 40
         
         blackmore_opt_mean_X = nan(length(mean_GdTimesW),1);
         blackmore_opt_val = nan;
