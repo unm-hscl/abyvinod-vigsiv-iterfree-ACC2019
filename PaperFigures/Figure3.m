@@ -2,8 +2,8 @@
     close all
     clc
     load('../Figure1a-0.2-Run3.mat','T','gbig','polyvertex','P','mean_x','xtarget','ono_opt_mean_X','onopwl_opt_mean_X','pwa_opt_mean_X','blackmore_opt_mean_X','N');
-    plot_markersize = 20;
-    plot_fontSize = 20;
+    plot_markersize = 10;
+    plot_fontSize = 10;
     fig1 = figure(1);
     clf
     subplot(2,2,1);
@@ -29,13 +29,13 @@
 %         title('\textbf{Trajectory}')
     leg=legend([h1 h11 h2 h3 h4 h5 h6],{'Target Tube',...
         'Initial state','Target Trajectory',...
-        'Piecewise affine approach - QP',...
-        'Iterative risk allocation (IRA)',...
-        'Piecewise affine approach - MIQP',...
-        sprintf('Particle control (PC), %i Particles',N)},'FontSize',plot_fontSize);
+        ['Piecewise affine' newline 'approach - QP'],...
+        ['Iterative risk' newline 'allocation (IRA)'],...
+        ['Piecewise affine' newline 'approach - MIQP'],...
+        ['Particle control' newline sprintf('(PC) %i Particles',N)]},'FontSize',plot_fontSize);
     box on;
     set(gca,'FontSize',plot_fontSize);
-    set(leg,'Position', [0.4808    0.3752    0.2415    0.2522]);
+    set(leg,'Position', [0.48 0.0 0.25 0.9]);
     load('../Figure1b-0.6-Run3.mat','T','gbig','polyvertex','P','mean_x','xtarget','ono_opt_mean_X','onopwl_opt_mean_X','pwa_opt_mean_X','blackmore_opt_mean_X');
     subplot(2,2,3);
     hold on
