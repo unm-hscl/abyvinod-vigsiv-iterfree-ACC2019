@@ -10,7 +10,7 @@
     %% Housekeeping: 
     
         clear;
-        close all;
+%         close all;
         clc;
         cvx_clear;
         cd('SReachTools-private');
@@ -166,6 +166,7 @@
         plot_markersize = 8;
         plot_fontSize = 9;
         fig1 = figure(1);
+        subplot(2,1,1)
         clf
         hold on
         polyvertex =[1:T+1,1:T+1;[-gbig(1),-gbig(1:2:end)'],...
@@ -197,11 +198,11 @@
             'Iterative risk allocation (IRA)',...
             'Piecewise affine approach - MIQP',...
             sprintf('Particle control (PC), %i Particles',N)},...
-            'Location','SouthOutside','FontSize',plot_fontSize);
+            'Location','EastOutside','FontSize',plot_fontSize);
         box on;
         set(gca,'FontSize',plot_fontSize)
         set(fig1,'Units','centimeters');
-        set(fig1,'Position',[0 0 10 10]);
+        set(fig1,'Position',[0 0 20 10]);
         fig1 = tightfig(fig1);
         hgexport(fig1,'Figure1a',hgexport('factorystyle'),'Format', 'png')
         hgexport(fig1,'Figure1a',hgexport('factorystyle'),'Format', 'eps')
