@@ -10,7 +10,7 @@
     %% Housekeeping: 
     
         clear;
-        close all;
+%         close all;
         clc;
         cvx_clear;
         cd('SReachTools-private');
@@ -165,8 +165,9 @@
 
         plot_markersize = 10;
         plot_fontSize = 9;
-        fig1 = figure(1);
-        clf
+        subplot(2,1,2)
+%         fig1 = figure(1);
+%         clf
         hold on
         polyvertex =[1:T+1,1:T+1;[-gbig(1),-gbig(1:2:end)'],...
             [gbig(1),gbig(1:2:end)']]'; % Note: This needs MPT to run!!
@@ -184,28 +185,28 @@
         h6 = plot(2:(T+1),blackmore_opt_mean_X(1:2:end,1),...
             'ks','MarkerSize',plot_markersize);
         
-        set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
-        set(groot, 'defaultLegendInterpreter','latex');
-        set(groot, 'defaulttextInterpreter','latex');
+%         set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
+%         set(groot, 'defaultLegendInterpreter','latex');
+%         set(groot, 'defaulttextInterpreter','latex');
         
         xlabel('\textbf{Time Step}')
         ylabel('\textbf{Position (x)}')
 %         title('\textbf{Trajectory}')
-        legend([h1 h11 h2 h3 h4 h5 h6],{'Target Tube',...
-            'Initial state','Target Trajectory',...
-            'Piecewise affine approach - QP',...
-            'Iterative risk allocation (IRA)',...
-            'Piecewise affine approach - MIQP',...
-            sprintf('Particle control (PC), %i Particles',N)},...
-            'Location','SouthOutside','FontSize',plot_fontSize);
-        box on;
-        set(gca,'FontSize',plot_fontSize)
-        set(fig1,'Units','centimeters');
-        set(fig1,'Position',[0 0 10 10]);
-        fig1 = tightfig(fig1);
-        hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'png')
-        hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'eps')
-        saveas(gcf,'Figures/Figure1b.fig','fig');
+%         legend([h1 h11 h2 h3 h4 h5 h6],{'Target Tube',...
+%             'Initial state','Target Trajectory',...
+%             'Piecewise affine approach - QP',...
+%             'Iterative risk allocation (IRA)',...
+%             'Piecewise affine approach - MIQP',...
+%             sprintf('Particle control (PC), %i Particles',N)},...
+%             'Location','SouthOutside','FontSize',plot_fontSize);
+%         box on;
+%         set(gca,'FontSize',plot_fontSize)
+%         set(fig1,'Units','centimeters');
+%         set(fig1,'Position',[0 0 20 10]);
+%         fig1 = tightfig(fig1);
+%         hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'png')
+%         hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'eps')
+%         saveas(gcf,'Figures/Figure1b.fig','fig');
         
     
 

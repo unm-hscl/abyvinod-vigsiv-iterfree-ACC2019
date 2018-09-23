@@ -226,21 +226,23 @@
         hold on
         h1 = plot(T_array,PWAWD,'md',...
             'LineWidth',1,'MarkerSize',plot_markersize);
-        h2 = plot(T_array,OnoTTS,'bx','MarkerSize',...
-            plot_markersize,'LineWidth',2);
+        h2 = plot(T_array,OnoTTS,'b^','MarkerSize',...
+            plot_markersize,'LineWidth',1);
         h3 = plot(T_array,PWAWOD,'r*',...
             'LineWidth',1,'MarkerSize',plot_markersize);
         h4 = plot(T_array,BlackmoreTTS,'ks',...
             'LineWidth',1,'MarkerSize',plot_markersize);
         
-        xlabel('\textbf{Time Horizon}')
-        ylabel('\textbf{Time to Solve (seconds)}')
+        xlabel('Time Horizon')
+        ylabel('Time to Solve (seconds)')
+        axis([5 60 0 3*10^3])
+        yticks([10^0 10^1 10^2 10^3])
 %         title('Time Horizon vs. Solve time')
         legend([h1 h2 h3 h4],{'Piecewise affine approach - QP',...
-            'Ono2008 IRA Method',...
+            'Iterative risk allocation (IRA)',...
             'Piecewise linear approach - MIQP',...
-            sprintf('Blackmore11 PC Method, %i Particles',N)},...
-            'Location','SouthOutside','FontSize',plot_fontSize);
+            sprintf('Particle control (PC), %i Particles',N)},...
+            'Location','EastOutside','FontSize',plot_fontSize);
         box on;
         set(gca,'FontSize',plot_fontSize)
         set(gca, 'YScale', 'log')
@@ -248,7 +250,7 @@
         set(groot, 'defaultLegendInterpreter','latex');
         set(groot, 'defaulttextInterpreter','latex');
         set(fig2,'Units','centimeters');
-        set(fig2,'Position',[0 0 8.8 8.8]);
+        set(fig2,'Position',[0 0 20 4.8]);
         grid on
         fig1 = tightfig(fig2);
         hgexport(fig2,'Figure2',hgexport('factorystyle'),'Format', 'png')

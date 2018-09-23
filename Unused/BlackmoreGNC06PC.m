@@ -28,7 +28,7 @@ clear, clc, close all
         G = eye(4);
 
 % Number of particles to generate. 
-    N = 50; 
+    N = 10; 
     
 % Time Horizon.
     T = 30;
@@ -80,11 +80,11 @@ clear, clc, close all
 % Approximate the expected cost function in terms of particles.
 
     % Generate desired trajectory for the entire time horizon: 
-        Q = [200 0 0 0; 
+        Q = [300 0 0 0; 
              0 100 0 0; 
-             0 0 200 0; 
+             0 0 300 0; 
              0 0 0 100;];
-        R = 0.001*eye(size(B,2)*T);
+        R = 100*eye(size(B,2)*T);
 
         
         
@@ -102,6 +102,7 @@ cvx_clear
 cvx_precision best
 cvx_begin
     variable U(size(B,2)*T)
+    variable Up(size(B,2)*T)
     variable Xr(size(A,2)*T,N)
     variable z(N,1) binary
     variable g(N,size(ob_a,3)) binary
@@ -118,10 +119,15 @@ cvx_begin
             for j = 1:T-1
 %                     abs(U(2*(j-1)+1:2*j))<=[0.5;0.5]; 
                     Xr((4*j+1):4*(j+1),i) == B*U(2*(j-1)+1:2*j) + A*Xr(4*(j-1)+1:4*(j),i)+G*W(4*(j-1)+1:4*j,i);
+                    U(2*(j)+1:2*(j+1)) == U(2*(j-1)+1:2*j) + Up(2*(j-1)+1:2*j); 
+                    abs(U(2*(j)+1:2*(j+1)) - U(2*(j-1)+1:2*j))<= 20;
             end
         end
-          U <=  20;
-          U >= -20;
+        
+          
+          U <=  10;
+          U >= 0;
+          
           
           
       for i = 1:N
