@@ -4,7 +4,7 @@ load('Figure1a-0.2-Run3.mat')
     %% Plotting trajectories of each method: 
 
         plot_markersize = 10;
-        plot_fontSize = 9;
+        plot_fontSize = 11;
         fig1 = figure(1);
         subplot(2,1,1)
         hold on
@@ -31,13 +31,15 @@ load('Figure1a-0.2-Run3.mat')
         xlabel('Time Step')
         ylabel('Position (x)')
 %         title('\textbf{Trajectory}')
-        legend([h1 h11 h2 h3 h4 h5 h6],{'Target Tube',...
+        [hleg, hobj, hout, mout] = legend([h1 h11 h2 h3 h4 h5 h6],{'Target Tube',...
             'Initial state','Target Trajectory',...
             ['Piecewise affine' newline 'approach - QP'],...
             ['Iterative risk' newline 'allocation (IRA)'],...
             ['Piecewise affine' newline 'approach - MIQP'],...
             ['Particle control' newline sprintf('(PC), %i Particles',N)]},...
             'Location','EastOutside','FontSize',11);
+                hobj(9).Children.MarkerSize = 10;
+
         box on;
         set(gca,'FontSize',plot_fontSize)
         set(fig1,'Units','centimeters');
@@ -48,7 +50,7 @@ load('Figure1b-0.4-Run3.mat')
 
 
         plot_markersize = 10;
-        plot_fontSize = 9;
+        plot_fontSize = 11;
         subplot(2,1,2)
         hold on
         polyvertex =[1:T+1,1:T+1;[-gbig(1),-gbig(1:2:end)'],...
@@ -73,7 +75,7 @@ load('Figure1b-0.4-Run3.mat')
         set(gca,'FontSize',plot_fontSize)
         
         set(fig1,'Units','centimeters');
-        set(fig1,'Position',[0 0 15 10]);
+        set(fig1,'Position',[0 0 10 10]);
         fig1 = tightfig(fig1);
         hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'png')
         hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'eps')
