@@ -41,7 +41,7 @@ axis equal
 axis off
 
 %% Second plot
-figure(2);
+fig = figure(2);
 clf
 hold on
 over_approx = Polyhedron('H',[-PWA_overapprox_m               , 0,-1;
@@ -54,13 +54,27 @@ plot(actual_poly,'color','b');
 under_approx = Polyhedron('V',[knots_underapprox             , 0;
                                g_matlabfun(knots_underapprox),-1]');
 plot(under_approx,'color','r');
-leg=legend('$\ell_f^+(x)\geq s$','$f(x)\geq s$','$\ell_f^-(x)\geq s$');
+leg=legend('$\ell_f^+(x)\geq s$','$f(x)\geq s$','$\ell_f^-(x)\geq s$','Location','EastOutside');
 set(leg,'interpreter','latex');
 set(gca,'FontSize',20)
 set(gca,'XTick',[0:0.2:1]);
 xlabel('x','interpreter','latex');
 ylabel('s','interpreter','latex');
-axis equal
+axis([0 1 -1 0.25])
 box on
 grid on
 % axis off
+
+plot_markersize = 10;
+plot_fontSize = 10;
+
+box on
+set(gca,'FontSize',plot_fontSize)
+
+set(gca,'Units','centimeters');
+set(gca,'Position',[0 0 4.4 2.2]);
+tightfig
+
+hgexport(fig,'fit',hgexport('factorystyle'),'Format', 'png')
+hgexport(fig,'fit',hgexport('factorystyle'),'Format', 'eps')
+saveas(fig,'Figures/fit.fig','fig');

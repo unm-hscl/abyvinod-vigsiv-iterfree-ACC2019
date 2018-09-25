@@ -4,7 +4,7 @@ load('Figure3a-0.2.mat')
     %% Plotting trajectories of each method: 
 
         plot_markersize = 10;
-        plot_fontSize = 9;
+        plot_fontSize = 11;
         fig3 = figure(1);
         subplot(2,1,1)
         hold on
@@ -32,12 +32,12 @@ load('Figure3a-0.2.mat')
         xlabel('Position ($z_1$)')
         ylabel('Position ($z_2$)')
 %         title('\textbf{Trajectory}')
-        [hleg, hobj, hout, mout] = legend([h1 h2 h3 h4 h5 h6 h7],{'Safe Set',...
-            'Target Set','Initial Position',...
+        [hleg, hobj, hout, mout] = legend([h1 h2 h3 h4 h5 h6 h7],{'Safe set',...
+            'Target set','Initial position',...
             ['Piecewise affine' newline 'approach - QP'],...
             ['Iterative risk' newline 'allocation (IRA)'],...
             ['Piecewise affine' newline 'approach - MIQP'],...
-            ['Particle control' newline sprintf('(PC), %i Particles',...
+            ['Particle control' newline sprintf('(PC), %i particles',...
             N)]},...
             'Location','EastOutside','FontSize',11);
                 set(gca,'FontSize',11)
@@ -73,9 +73,6 @@ load('Figure3a-0.2.mat')
                     pwa_opt_mean_X(2:4:end),...
                     5, 'r*');
         
-        hgexport(fig3,'Figure3a',hgexport('factorystyle'),'Format', 'png')
-        hgexport(fig3,'Figure3a',hgexport('factorystyle'),'Format', 'eps')
-        saveas(gcf,'Figures/Fgiure3a.fig','fig');
   
 %%
 
@@ -85,7 +82,7 @@ load('Figure3b-0.6.mat')
  %% Plotting trajectories of each method: 
 
         plot_markersize = 10;
-        plot_fontSize = 9;
+        plot_fontSize = 11;
         subplot(2,1,2)
         hold on
         plot(safe_set.slice([3,4], slice_at_vx_vy), 'color', 'y','alpha',0.5);
@@ -125,7 +122,7 @@ load('Figure3b-0.6.mat')
         
         box on;
         axis tight
-        axis([-1.15 0.2 -1.15 0.05])
+        axis([-1.15 0.1 -1.15 0.05])
         set(gca,'XTick',sort([-1.15,get(gca,'XTick')]));
         set(gca,'YTick',sort([-1.15,get(gca,'YTick')]));
         set(gca,'FontSize',plot_fontSize)

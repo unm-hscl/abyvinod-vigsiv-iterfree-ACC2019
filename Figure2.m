@@ -234,9 +234,9 @@
             'LineWidth',1,'MarkerSize',plot_markersize);
         
         xlabel('Time Horizon')
-        ylabel('Time to Solve (seconds)')
+        ylabel('Time to Solve (sec)')
         axis([5 60 0 3*10^3])
-        yticks([10^0 10^1 10^2 10^3])
+        yticks([10^-1 10^0 10^1 10^2 10^3])
 %         title('Time Horizon vs. Solve time')
         [hleg, hobj, hout, mout] = legend({...
             ['Piecewise affine' newline 'approach - QP'],...
@@ -251,7 +251,7 @@
         set(groot, 'defaultLegendInterpreter','latex');
         set(groot, 'defaulttextInterpreter','latex');
         set(fig2,'Units','centimeters');
-        set(fig2,'Position',[0 0 20 4.8]);
+        set(fig3,'Position',[0 0 10 4.8]);
         grid on
         fig1 = tightfig(fig2);
         hgexport(fig2,'Figure2',hgexport('factorystyle'),'Format', 'png')

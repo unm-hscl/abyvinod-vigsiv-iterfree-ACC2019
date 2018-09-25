@@ -23,26 +23,27 @@ load('Figure1a-0.2-Run3.mat')
             'LineWidth',1,'MarkerSize',plot_markersize);
         h6 = plot(2:(T+1),blackmore_opt_mean_X(1:2:end,1),...
             'ks','MarkerSize',plot_markersize);
+        xlabel('Time Step')
+        ylabel('Position (x)')
         
         set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
         set(groot, 'defaultLegendInterpreter','latex');
         set(groot, 'defaulttextInterpreter','latex');
         
-        xlabel('Time Step')
-        ylabel('Position (x)')
+
 %         title('\textbf{Trajectory}')
-        [hleg, hobj, hout, mout] = legend([h1 h11 h2 h3 h4 h5 h6],{'Target Tube',...
-            'Initial state','Target Trajectory',...
+        [hleg, hobj, hout, mout] = legend([h1 h11 h2 h3 h4 h5 h6],{'Target tube',...
+            'Initial position','Target trajectory',...
             ['Piecewise affine' newline 'approach - QP'],...
             ['Iterative risk' newline 'allocation (IRA)'],...
             ['Piecewise affine' newline 'approach - MIQP'],...
-            ['Particle control' newline sprintf('(PC), %i Particles',N)]},...
+            ['Particle control' newline sprintf('(PC), %i particles',N)]},...
             'Location','EastOutside','FontSize',11);
                 hobj(9).Children.MarkerSize = 10;
 
         box on;
         set(gca,'FontSize',plot_fontSize)
-        set(fig1,'Units','centimeters');
+%         set(fig1,'Units','centimeters');
   
 %%
 
@@ -75,10 +76,13 @@ load('Figure1b-0.4-Run3.mat')
         set(gca,'FontSize',plot_fontSize)
         
         set(fig1,'Units','centimeters');
-        set(fig1,'Position',[0 0 10 10]);
+        set(fig1,'Position',[0 0 15 10]);
         fig1 = tightfig(fig1);
-        hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'png')
-        hgexport(fig1,'Figure1b',hgexport('factorystyle'),'Format', 'eps')
+        pause
+        tightfig
+        print('Figure3.pdf','-dpdf')
+        hgexport(fig1,'Figure3',hgexport('factorystyle'),'Format', 'png')
+        hgexport(fig1,'Figure3',hgexport('factorystyle'),'Format', 'eps')
         saveas(gcf,'Figures/Figure1b.fig','fig');
         
     
