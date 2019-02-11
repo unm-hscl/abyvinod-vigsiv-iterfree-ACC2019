@@ -9,7 +9,7 @@ function [PWA_overapprox_m,...
     j = 1;
     search_interval_min = 0;
     search_interval_max = ub - lb;
-    fzero_options = optimset('Display','off'); % show iterations
+    fzero_options = optimset('Display','on'); % show iterations
                 
     %% Symbolic function definitions
     % TODO: Get g as an argument
