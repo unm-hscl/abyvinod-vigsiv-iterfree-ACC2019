@@ -1,4 +1,7 @@
 close all, clear,clc
+%% Figure 5 Plot
+% This plot generates the plots for the CWH demonstration: 
+
 
         
     %% Plotting trajectories of each method: 
@@ -72,6 +75,10 @@ close all, clear,clc
         hgexport(fig3,'Figure3a',hgexport('factorystyle'),'Format', 'eps')
         saveas(gcf,'Figures/Fgiure3a.fig','fig');
   
+%%
+
+load('Figure3b-0.6.mat')
+
 
  %% Plotting trajectories of each method: 
 

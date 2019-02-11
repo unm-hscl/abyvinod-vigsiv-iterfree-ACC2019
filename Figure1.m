@@ -14,7 +14,9 @@ x_iter=linspace(lower_bound,upper_bound,no_of_test_points);
 y_iter_true = -function_handle(x_iter);     % Only th
 
 tic
-[PWA_overapprox_m, PWA_overapprox_c, PWA_underapprox_m, PWA_underapprox_c] = getPWAOverAndUnderApprox(lower_bound,upper_bound,maxlierror,function_handle,fun_monotone);
+[PWA_overapprox_m, PWA_overapprox_c,...
+    PWA_underapprox_m, PWA_underapprox_c] = getPWAOverAndUnderApprox(...
+    lower_bound,upper_bound,maxlierror,function_handle,fun_monotone);
 toc
 % Added a negative sign since function_handle is the negation of g(z)
 % Also, because of the image across x-axis due to negation, the definitions
