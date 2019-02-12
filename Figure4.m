@@ -1,4 +1,4 @@
-%% abyvnod-vigsiv-iterfree-ACC2019: Figure 2
+%% abyvinod-vigsiv-iterfree-ACC2019: Figure 2
     % This code runs comparisons of OnoCDC08, PWLRealizationOno, and
     % BlackmoreTRo11 for a single tracjetory of a double integrator with a 
     % window closing in time and compares how the methods fair with
@@ -14,9 +14,6 @@
         close all;
         clc;
         cvx_clear;
-        cd('SReachTools-private');
-        srtinit
-        cd('../');
         
     %% Load parameters: 
 
@@ -126,8 +123,18 @@
                 Polyhedron('lb',-ulim,'lb',ulim),...
                 RandomVector('Gaussian',mean_w,cov_mat_diag));    
             [Ad, Bd, Gd] = getConcatMats(sys, T);
-            [~, mean_X_sans_input, cov_X_sans_input] =...
-                getHmatMeanCovForXSansInput(sys, x0, T);  
+    if isa(x0,'RandomVector')
+        % TODO: Waiting for a reference --- but essentially propagation of mean
+        % and covariance
+        mean_X_sans_input = Ad * x0.parameters.mean + Gd *...
+            mean_concat_disturb;
+        cov_X_sans_input = Ad * x0.parameters.covariance * Ad' + ...
+            Gd * cov_concat_disturb * Gd';
+    else
+        % Computation of mean and covariance of X (sans input) by (17),LCSS 2017
+        mean_X_sans_input = Ad * initial_state + Ad * mean_concat_disturb;
+        cov_X_sans_input = Gd * cov_concat_disturb * Gd';
+    end  
             
 
 
@@ -190,9 +197,9 @@
                     T,...
                     U_vector);
             % all does it column-wise
-            particlewise_result = all(hbig*X_mcarlo_sans_init_state <= gbig);
+            particlewise_result = all(hbig*X_mcarlo_sans_init_state(3:end,:) <= gbig);
             prob_estim = sum(particlewise_result)/n_mcarlo_sims;
-            cost_estim(input_vec_indx) = mean(1/n_mcarlo_sims*sum(sum((X_mcarlo_sans_init_state(1:state_offset:end,:)-xtarget_mcarlo(1:state_offset:end,:)).^2.*Q))+U_vector'*R*U_vector); 
+            cost_estim(input_vec_indx) = mean(1/n_mcarlo_sims*sum(sum((X_mcarlo_sans_init_state(3:end,:)-xtarget_mcarlo).^2.*Q))+U_vector'*R*U_vector); 
             relative_abserror_in_cost = abs(cost_estim(input_vec_indx) - true_cost)/true_cost;
             if prob_estim >= 1-Delta && relative_abserror_in_cost <= max_rel_abserror
                 fprintf('PASSD: %s : Monte-Carlo via %1.0e particles | P{Hx<=g} = %1.3f | RelErr Cost = %1.3f\n',...
@@ -240,7 +247,7 @@
 %         title('Time Horizon vs. Solve time')
         legend([h1 h2 h3 h4],{'Piecewise affine approach - QP',...
             'Iterative risk allocation (IRA)',...
-            'Piecewise linear approach - MIQP',...
+            'Piecewise affine approach - MIQP',...
             sprintf('Particle control (PC), %i Particles',N)},...
             'Location','EastOutside','FontSize',plot_fontSize);
         box on;

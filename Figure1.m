@@ -1,3 +1,9 @@
+%% abyvnod-vigsiv-iterfree-ACC2019: Figure 1
+    % This plot just shows an example of -x^2 with our algorithm
+    % REQUIRED DEPENDENCIES: - MATLAB symbolic toolbox
+    %                        - MATLAB global optimization toolbox
+
+
 clc, clear, close all
 
 
